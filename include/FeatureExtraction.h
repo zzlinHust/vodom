@@ -10,6 +10,15 @@
 
 namespace myslam
 {
+
+struct QuadTreeNode
+{
+    std::vector<cv::KeyPoint> keyPoints;
+    Eigen::Vector2i UL, UR, BL, BR;
+    void DevideToNextLevel(QuadTreeNode node[4]);
+};
+
+
 class FeatureExtraction
 {
 public:
@@ -24,10 +33,15 @@ public:
 
     void Extract(cv::Mat _img , std::vector<cv::KeyPoint> &_keyPoints , cv::OutputArray _descriptor);
 
-
 private:
 
     std::vector<float> mScale;
+    std::vector<float> mSigma;
+    std::vector<int> mFeaturesPyramid;
+
+    int mPatchRadium;
+    int mPatchSize;
+    int mEdgePreserve;
 
     void ExtractSingleLevel(std::vector<cv::KeyPoint> &_keyPoints , cv::Mat &_descriptor , int level);
 
@@ -35,11 +49,9 @@ private:
 
     void Detect(std::vector<cv::KeyPoint> &_keyPoints , int level);
 
-    void SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, int levels);
+    void SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::Point2f minP, cv::Point2f maxP, int level);
 
-    void ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints, int levels);
-
-
+    void ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints, int level);
 
 };
 }
