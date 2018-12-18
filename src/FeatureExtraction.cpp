@@ -32,16 +32,18 @@ FeatureExtraction::FeatureExtraction(const FeatureExtractionParam &param) : mPar
     float nfeatures = mParam.feature_num * (1.0f - scale) / (1.0f - std::pow(scale, param.levels));
     mScale[0] = 1.0f;
     mSigma[0] = 1.0f;
-    mFeaturesPyramid[0] = cvRound(nfeatures);
-std::cout << "nfeatures " << nfeatures << std::endl;
+    int sum = mFeaturesPyramid[0] = static_cast<unsigned int>(cvRound(nfeatures));
 
     for (int i = 1; i < n; ++i)
     {
         nfeatures *= scale;
-        mFeaturesPyramid[i] = cvRound(nfeatures);
+        mFeaturesPyramid[i] = static_cast<unsigned int>(cvRound(nfeatures));
         mScale[i] = scale * mScale[i-1];
         mSigma[i] = factor * factor * mSigma[i-1];
+        sum += mFeaturesPyramid[i];
     }
+    mFeaturesPyramid[n-1] -= sum - mParam.feature_num;
+    if (mFeaturesPyramid[n-1] < 0) mFeaturesPyramid[n-1] = 0;
 }
 
 FeatureExtraction::~FeatureExtraction(){}
@@ -52,7 +54,7 @@ void FeatureExtraction::Extract(cv::Mat _img, std::vector<cv::KeyPoint> &_keyPoi
 
     ComputePyramid(_img);
 
-    vector<vector<cv::KeyPoint>>  allKeyPoints(mParam.levels);
+    vector<vector<cv::KeyPoint>> allKeyPoints(mParam.levels);
     vector<cv::Mat> allDescriptor(mParam.levels);
 //    vector<thread> allThreads(mParam.levels);
 //
@@ -148,24 +150,25 @@ void FeatureExtraction::Detect(std::vector<cv::KeyPoint> &_keyPoints, int level)
             }
         }
     }
-    cv::Mat img;
-    cv::drawKeypoints(mImagePyramid[level],_keyPoints, img, cv::Scalar::all(-1),cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-    cv::imshow("d",img);
-    cv::waitKey();
+//    cv::Mat img;
+//    cv::drawKeypoints(mImagePyramid[level],_keyPoints, img, cv::Scalar::all(-1),cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+//    cv::imshow("d",img);
+//    cv::waitKey();
 
     SortKeyPoint(_keyPoints, cv::Point(minX, minY), cv::Point(maxX, maxY), level);
 
-    cv::drawKeypoints(mImagePyramid[level],_keyPoints, img, cv::Scalar::all(-1),cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-    cv::imshow("d",img);
-    cv::waitKey();
+//    cv::drawKeypoints(mImagePyramid[level],_keyPoints, img, cv::Scalar::all(-1),cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+//    cv::imshow("d",img);
+//    cv::waitKey();
 }
 
 
-void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::Point2f minP, cv::Point2f maxP, int level)
+void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::Point2i minP, cv::Point2i maxP, int level)
 {
-    const int initNodesNum = (int)std::round((maxP.x - minP.x) / (maxP.y - minP.y));
+    const unsigned int initNodesNum = (unsigned int)std::round(float(maxP.x - minP.x) / float(maxP.y - minP.y));
     const float hX = static_cast<float>(maxP.x - minP.x) / initNodesNum;
-    printf("node nums : %d  hx : %.3f\n",initNodesNum, hX);
+//    printf("level: %d  ,node nums : %d  ,hx : %.3f\n",level,initNodesNum, hX);
+//    std::cout << "range : " <<  minP << maxP << std::endl;
 
     std::vector<QuadTreeNode> leavesNode;
     std::vector<QuadTreeNode> rootNode;
@@ -179,28 +182,24 @@ void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::
     {
         QuadTreeNode &node = rootNode[i];
         node.keyPoints.reserve(_keyPoints.size());
-        node.UL = Eigen::Vector2i(hX * i, 0);
-        node.UR = Eigen::Vector2i(hX * (i+1), 0);
-        node.BL = Eigen::Vector2i(node.UL[0], maxP.y - minP.y);
-        node.BR = Eigen::Vector2i(node.UR[0], maxP.y - minP.y);
+        node.UL = cv::Point2i(int(hX * i), 0);
+        node.UR = cv::Point2i(int(hX * (i+1)), 0);
+        node.BL = cv::Point2i(node.UL.x, maxP.y - minP.y);
+        node.BR = cv::Point2i(node.UR.x, maxP.y - minP.y);
         node.keyPoints.reserve(_keyPoints.size());
+//        std::cout << "init " << i << "  " << rootNode[i].UL << rootNode[i].UR << rootNode[i].BL << rootNode[i].BR << std::endl;
     }
 
-    std:: cerr << level << std::endl;
-    int ii = 0;
     for(const auto &kp : _keyPoints)
     {
-
-        int ds = kp.pt.x / hX;
-//        std::cout << "level " << level << "  ii = " << "   " << ii << "   "  << ds  << std::endl;
-        rootNode[kp.pt.x / hX].keyPoints.push_back(kp);
-        ++ii;
+//        if((kp.pt.x - minP.x )/ hX > 4) std::cerr << kp.pt.x << "   " << hX << std::endl;
+        rootNode[(kp.pt.x - minP.x) / hX].keyPoints.push_back(kp);
     }
-    std::cout << "" << std::endl;
+//    std::cout << "end init root node" << std::endl;
 
 
-    std::vector<QuadTreeNode> *father = &rootNode;
-    std::vector<QuadTreeNode> *son = &nextLevelNode;
+    auto *father = &rootNode;
+    auto *son = &nextLevelNode;
 
     while (1) /// 通过四叉树分裂均匀选取角点
     {
@@ -213,7 +212,7 @@ void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::
             else if (fatherNode.keyPoints.size() > 1) // 分裂成子节点
             {
                 QuadTreeNode sonNode[4];
-                fatherNode.DevideToNextLevel(sonNode);
+                fatherNode.DivideToNextLevel(sonNode);
                 for (int i = 0 ; i < 4 ; ++i)
                 {
                     if(sonNode[i].keyPoints.size() == 1)
@@ -225,7 +224,8 @@ void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::
             }
             else{}
         }
-        if(son->size() >= mFeaturesPyramid[level] || son->size() == father->size())break;
+
+        if(son->size() >= mFeaturesPyramid[level] || son->size() == father->size()) break;
         else if(leavesNode.size() + son->size() * 3 > mFeaturesPyramid[level])
         {/// 当再次分裂（假设都能一分四）节点数将大于欲选取角点数时，优先对角点多的区域进行划分
             bool finish = false;
@@ -247,7 +247,7 @@ void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::
                     else
                     {
                         QuadTreeNode sonNode[4];
-                        it->DevideToNextLevel(sonNode);
+                        it->DivideToNextLevel(sonNode);
                         --nodes_left;
                         for (int i = 0 ; i < 4 ; ++i)
                         {
@@ -275,8 +275,9 @@ void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::
         }
     }
 
-    std::cout << "sichashu end !!!" << std::endl;
+//    std::cout << "sichashu end !!!" << std::endl;
 
+    _keyPoints.clear();
     _keyPoints.reserve(leavesNode.size() + son->size());
 
 
@@ -299,26 +300,42 @@ void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::
         }
         _keyPoints.push_back(kp);
     }
+//    std::cout << std::endl;
+}
+
+void FeatureExtraction::ComputeAngle(std::vector<cv::KeyPoint> &_keyPoints, int level)
+{
+
+}
+
+
+void FeatureExtraction::ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints, int level)
+{
+
 }
 
 
 
-void QuadTreeNode::DevideToNextLevel(QuadTreeNode *node)
+
+
+
+
+void QuadTreeNode::DivideToNextLevel(QuadTreeNode *node)
 {
-    Eigen::Vector2i dx(0.5 * (UR[0] - UL[0]) , 0);
-    Eigen::Vector2i dy(0 , 0.5 * (BR[0] - UR[0]));
+    int dx = static_cast<int>(0.5 * (UR.x - UL.x));
+    int dy = static_cast<int>(0.5 * (BR.y - UR.y));
 
     node[0].UL = UL;
-    node[0].UR = node[1].UL = UL + dx;
-    node[0].BL = node[2].UL = UL + dy;
-    node[0].BR = node[1].BL = node[2].UR = node[3].UL = UL + (dx + dy);
+    node[0].UR = node[1].UL = cv::Point2i(UL.x + dx, UL.y);
+    node[0].BL = node[2].UL = cv::Point2i(UL.x, UL.y + dy);
+    node[0].BR = node[1].BL = node[2].UR = node[3].UL = cv::Point2i(UL.x + dx, UL.y + dy);
     node[1].UR = UR;
-    node[1].BR = node[3].UR = UR + dy;
+    node[1].BR = node[3].UR = cv::Point2i(UR.x, UR.y + dy);
     node[2].BL = BL;
-    node[2].BR = node[3].BL = BL + dx;
+    node[2].BR = node[3].BL = cv::Point2i(BL.x + dx, BL.y);
     node[3].BR = BR;
 
-    int cx = node[0].BR[0], cy = node[0].BR[1];
+    int cx = node[0].BR.x, cy = node[0].BR.y;
     for(auto &kp : keyPoints)
     {
         if(kp.pt.x > cx)

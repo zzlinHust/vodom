@@ -14,8 +14,8 @@ namespace myslam
 struct QuadTreeNode
 {
     std::vector<cv::KeyPoint> keyPoints;
-    Eigen::Vector2i UL, UR, BL, BR;
-    void DevideToNextLevel(QuadTreeNode node[4]);
+    cv::Point2i UL, UR, BL, BR;
+    void DivideToNextLevel(QuadTreeNode node[4]);
 };
 
 
@@ -37,7 +37,7 @@ private:
 
     std::vector<float> mScale;
     std::vector<float> mSigma;
-    std::vector<int> mFeaturesPyramid;
+    std::vector<unsigned int> mFeaturesPyramid;
 
     int mPatchRadium;
     int mPatchSize;
@@ -49,14 +49,13 @@ private:
 
     void Detect(std::vector<cv::KeyPoint> &_keyPoints , int level);
 
-    void SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::Point2f minP, cv::Point2f maxP, int level);
+    void SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::Point2i minP, cv::Point2i maxP, int level);
+
+    void ComputeAngle(std::vector<cv::KeyPoint> &_keyPoints, int level);
 
     void ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints, int level);
 
 };
 }
-
-
-
 
 #endif //MYSLAM_FEATUREEXTRACTION_H
