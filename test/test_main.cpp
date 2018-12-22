@@ -1,31 +1,29 @@
 #include <iostream>
 #include "FeatureExtraction.h"
+#include "ORBextractor.h"
+#include "Frame.h"
 
 #include <opencv2/opencv.hpp>
 
 int main(int argc, char **argv)
 {
-    std::string path("/media/cbt/data0/0LZZ-private/slam/DepthBlue/PA5/code/1.png");
-    std::string paa("/home/cbt/SLAM_PROJECT/dataset/sequences/00/image_0/000000.png");
-    cv::Mat img = cv::imread(path);
+    std::string img_l("/home/cbt/SLAM_PROJECT/dataset/sequences/00/image_0/000000.png");
+    std::string img_r("/home/cbt/SLAM_PROJECT/dataset/sequences/00/image_1/000000.png");
+
+    cv::Mat left = cv::imread(img_l,cv::IMREAD_GRAYSCALE );
+    cv::Mat right = cv::imread(img_r,cv::IMREAD_GRAYSCALE );
 
     FeatureExtractionParam param;
     param.levels = 8;
     param.thresh_FAST = 20;
-    param.thresh_FAST_min = 3;
-    param.feature_num = 500;
+    param.thresh_FAST_min = 7;
+    param.feature_num = 1000;
     param.scale_factor = 1.2;
-    myslam::FeatureExtraction extraction(param);
-
-    std::vector<cv::KeyPoint> kp;
-    cv::Mat desc;
-    extraction.Extract(img,kp,desc);
 
 
-    cv::Mat result;
-    cv::drawKeypoints(img,kp, result, cv::Scalar::all(-1));
-    std::cout << kp.size() << std::endl;
-    cv::imshow("d",result);
+    myslam::Frame frame(left, right);
+
+
     cv::waitKey();
 
     return 0;

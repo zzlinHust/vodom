@@ -29,6 +29,8 @@ public:
 
     FeatureExtraction(const FeatureExtractionParam &_param);
 
+    FeatureExtraction();
+
     ~FeatureExtraction();
 
     void Extract(cv::Mat _img , std::vector<cv::KeyPoint> &_keyPoints , cv::OutputArray _descriptor);
@@ -38,14 +40,15 @@ private:
     std::vector<float> mScale;
     std::vector<float> mSigma;
     std::vector<unsigned int> mFeaturesPyramid;
+    std::vector<int> umax;
 
-    int mPatchRadium;
-    int mPatchSize;
-    int mEdgePreserve;
+    unsigned int mPatchRadium;
+    unsigned int mPatchSize;
+    unsigned int mEdgePreserve;
 
-    void ExtractSingleLevel(std::vector<cv::KeyPoint> &_keyPoints , cv::Mat &_descriptor , int level);
+    void ExtractSingleLevel(std::vector<cv::KeyPoint> *_keyPoints , cv::Mat *_descriptor , int level);
 
-    void ComputePyramid(cv::Mat src);
+    void ComputePyramid(cv::Mat &src);
 
     void Detect(std::vector<cv::KeyPoint> &_keyPoints , int level);
 
@@ -53,7 +56,7 @@ private:
 
     void ComputeAngle(std::vector<cv::KeyPoint> &_keyPoints, int level);
 
-    void ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints, int level);
+    void ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints, cv::Mat &_descriptor, int level);
 
 };
 }

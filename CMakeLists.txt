@@ -27,12 +27,15 @@ set( THIRD_PARTY_LIBS
         ${OpenCV_LIBS}
         ${Sophus_LIBRARIES}
         g2o_core g2o_stuff g2o_types_sba
+        -lpthread
         )
 ############### dependencies ######################
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 add_library( slam SHARED
         src/FeatureExtraction.cpp
+        #src/ORBextractor.cc
+        src/Frame.cpp
 )
 
 target_link_libraries( slam

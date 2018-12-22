@@ -5,6 +5,29 @@
 #ifndef MYSLAM_PARAMETERS_H
 #define MYSLAM_PARAMETERS_H
 
+struct CameraParam
+{
+    double fx;
+    double fy;
+    double cx;
+    double cy;
+    double s; // 倾斜参数,一般为0
+
+    double b; // 双目基线长
+};
+
+struct RectifyParam
+{
+    double k1;
+    double k2;
+    double k3;
+    double p1;
+    double p2;
+
+    /** 双目需要进行极线校正，这里先不处理. P Q R  **/
+
+};
+
 struct FeatureExtractionParam
 {
     unsigned int feature_num = 1000; // 每帧提取特征数量
@@ -15,5 +38,22 @@ struct FeatureExtractionParam
     float scale_factor = 1.2;// 金字塔尺度因子
 };
 
+
+
+
+//class Parameter
+//{
+//public:
+//    Parameter() = delete;
+//    ~Parameter() = delete;
+//
+//    static CameraParam Camera;
+//
+//    static RectifyParam Rectify;
+//
+//    static FeatureExtractionParam FeatureExt;
+//
+//
+//};
 
 #endif //MYSLAM_PARAMETERS_H
