@@ -280,6 +280,53 @@ FeatureExtraction::FeatureExtraction()
     param.thresh_FAST_min = 7;
     param.feature_num = 1000;
     param.scale_factor = 1.2;
+
+    size_t n = size_t(mParam.levels);
+    mPatchRadium = mParam.rad_FAST_orient;
+    mPatchSize = 2 * mPatchRadium + 1;
+    mEdgePreserve = mPatchRadium + 1;
+
+    mImagePyramid.resize(n);
+    mFeaturesPyramid.resize(n);
+    mScale.resize(n);
+    mSigma.resize(n);
+
+    float factor = mParam.scale_factor;
+    float scale = 1.0f / factor;
+    float nfeatures = mParam.feature_num * (1.0f - scale) / (1.0f - std::pow(scale, param.levels));
+    mScale[0] = 1.0f;
+    mSigma[0] = 1.0f;
+    int sum = mFeaturesPyramid[0] = static_cast<unsigned int>(cvRound(nfeatures));
+
+    for (int i = 1; i < n; ++i)
+    {
+        nfeatures *= scale;
+        mFeaturesPyramid[i] = static_cast<unsigned int>(cvRound(nfeatures));
+        mScale[i] = scale * mScale[i-1];
+        mSigma[i] = factor * factor * mSigma[i-1];
+        sum += mFeaturesPyramid[i];
+    }
+    mFeaturesPyramid[n-1] -= sum - mParam.feature_num;
+    if (mFeaturesPyramid[n-1] < 0) mFeaturesPyramid[n-1] = 0;
+
+
+    const unsigned int half_patch_size = mPatchSize / 2;
+    umax.resize(half_patch_size + 1);
+    int v, v0, vmax = cvFloor(half_patch_size * sqrt(2.f) / 2 + 1);
+    int vmin = cvCeil(half_patch_size * sqrt(2.f) / 2);
+    const double hp2 = half_patch_size * half_patch_size;
+    for (v = 0 ; v <= vmax ; ++v)
+        umax[v] = cvRound(sqrt(hp2 - v * v));
+
+    // Make sure we are symmetric
+    for (v = half_patch_size , v0 = 0 ; v >= vmin ; --v)
+    {
+        while (umax[v0] == umax[v0 + 1])
+            ++v0;
+        umax[v] = v0;
+        ++v0;
+    }
+
 }
 
 FeatureExtraction::FeatureExtraction(const FeatureExtractionParam &param) : mParam(param)
@@ -337,9 +384,7 @@ FeatureExtraction::~FeatureExtraction(){}
 void FeatureExtraction::Extract(cv::Mat _img, std::vector<cv::KeyPoint> &_keyPoints, cv::OutputArray &_descriptor)
 {
 
-    std::cout << "Extract in" << std::endl;
     ComputePyramid(_img);
-    std::cout << "ComputePyramid out" << std::endl;
     vector<vector<cv::KeyPoint>> allKeyPoints(mParam.levels);
     vector<cv::Mat> allDescriptor(mParam.levels);
     vector<thread> allThreads(mParam.levels);
@@ -354,7 +399,6 @@ void FeatureExtraction::Extract(cv::Mat _img, std::vector<cv::KeyPoint> &_keyPoi
 //    }
     for(int i = 0 ; i < mParam.levels ; ++i)
         ExtractSingleLevel(&allKeyPoints[i], &allDescriptor[i], i);
-    std::cout << "Extract finish" << std::endl;
     auto des_it = allDescriptor.begin();
     for(int i = 0 ; i < mParam.levels ; ++i)
     {
@@ -370,14 +414,10 @@ void FeatureExtraction::Extract(cv::Mat _img, std::vector<cv::KeyPoint> &_keyPoi
 void FeatureExtraction::ExtractSingleLevel(std::vector<cv::KeyPoint> *_keyPoints, cv::Mat *_descriptor, int level)
 {
     /** 检测关键点 **/
-    std::cout << "Detect in" << std::endl;
     Detect(*_keyPoints, level);
 
-    std::cout << "ComputeAngle in" << std::endl;
     /** 计算关键点方向 **/
     ComputeAngle(*_keyPoints, level);
-
-    std::cout << "ComputeDescriptor in" << std::endl;
 
     /** 计算描述子 **/
     ComputeDescriptor(*_keyPoints, *_descriptor, level);
@@ -385,8 +425,6 @@ void FeatureExtraction::ExtractSingleLevel(std::vector<cv::KeyPoint> *_keyPoints
 
 void FeatureExtraction::ComputePyramid(cv::Mat &src)
 {
-    cv::imshow("src",src);
-    cv::waitKey();
     mImagePyramid[0] = src;
     for(int i = 1 ; i < mParam.levels ; ++i)
     {

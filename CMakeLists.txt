@@ -33,8 +33,9 @@ set( THIRD_PARTY_LIBS
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 add_library( slam SHARED
+        src/Input.cpp
         src/FeatureExtraction.cpp
-        #src/ORBextractor.cc
+        src/ORBextractor.cc
         src/Frame.cpp
 )
 

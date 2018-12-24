@@ -40,20 +40,4 @@ struct FeatureExtractionParam
 
 
 
-
-//class Parameter
-//{
-//public:
-//    Parameter() = delete;
-//    ~Parameter() = delete;
-//
-//    static CameraParam Camera;
-//
-//    static RectifyParam Rectify;
-//
-//    static FeatureExtractionParam FeatureExt;
-//
-//
-//};
-
 #endif //MYSLAM_PARAMETERS_H

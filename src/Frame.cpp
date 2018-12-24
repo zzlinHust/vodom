@@ -4,7 +4,6 @@
 
 #include "Frame.h"
 #include "Rectifier.h"
-#include "FeatureExtraction.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -16,8 +15,6 @@ namespace myslam
 {
 Frame::Frame(cv::Mat &imgL, cv::Mat &imgR)
 {
-
-    std::cout << "Frame in" << std::endl;
     if (imgL.channels() == 3) {
         cv::cvtColor(imgL, mImgL, CV_RGB2GRAY);
         cv::cvtColor(imgR, mImgR, CV_RGB2GRAY);
@@ -30,16 +27,12 @@ Frame::Frame(cv::Mat &imgL, cv::Mat &imgR)
         mImgL = imgL;
         mImgR = imgR;
     }
-    Rectifier::StereoRectify();// 此处没有用=.=
-
 
 
     extraction.Extract(mImgL, mKeyPointsL, mDescL);// TODO： 用线程加速
     extraction.Extract(mImgR, mKeyPointsR, mDescR);
 
-    std::cout << "StereoMatch in" << std::endl;
     StereoMatch(); // TODO:
-    std::cout << "ComputeDepth in" << std::endl;
 
     ComputeDepth(); // TODO:
 
@@ -83,12 +76,12 @@ void Frame::StereoMatch()
             search_rad[i] = extraction.mParam.scale_factor * search_rad[i-1];
     }
 
-    vector<vector<int>> search_range(mImgL.rows); // search_range[i]的意义为右图中可能与左图第i行特征点匹配的所有特征。
+    vector<vector<int>> search_range(static_cast<unsigned long>(mImgL.rows)); // search_range[i]的意义为右图中可能与左图第i行特征点匹配的所有特征。
     for( int index = 0 ; index < mKeyPointsR.size() ; ++index )
     {
         const auto &kp = mKeyPointsR[index];
-        int minRow = floor(kp.pt.y - search_rad[kp.octave]);
-        int maxRow = ceil(kp.pt.y + search_rad[kp.octave]);
+        int minRow = cvRound(floor(kp.pt.y - search_rad[kp.octave]));
+        int maxRow = cvRound(ceil(kp.pt.y + search_rad[kp.octave]));
         for(int j = minRow ; j <= maxRow ; ++j)
             search_range[j].push_back(index);
     }
@@ -105,7 +98,7 @@ void Frame::StereoMatch()
         int min_dist = _hamming_thresh; /* 特征点Hamming距离必须小于一个阈值 */
         for(const auto &kpIndex : possibleKps )
         {
-            const cv::Mat &desR = mDescR.row(i);
+            const cv::Mat &desR = mDescR.row(kpIndex);
             int dist = HammingDistance(desL, desR);
             if(dist < min_dist)
             {
@@ -116,27 +109,30 @@ void Frame::StereoMatch()
         if(best_i != -1)
             mMatch[i] = best_i;
     }
+
+    /** for test **/
+    cv::Mat test;
+    cv::vconcat(mImgL, mImgR,test);
+    cv::Point2f ceb(0,mImgL.rows);
+    for(int i = 0 ; i < mMatch.size() ; ++i)
+    {
+        if(mMatch[i] != -1 && fabs(mKeyPointsL[i].pt.x-mKeyPointsR[mMatch[i]].pt.x) < 20 )
+        {
+            cv::circle(test,mKeyPointsL[i].pt,2,cv::Scalar(-1));
+            cv::circle(test,mKeyPointsR[mMatch[i]].pt+ceb,2,cv::Scalar(-1));
+            cv::line(test,mKeyPointsL[i].pt, mKeyPointsR[mMatch[i]].pt+ceb,cv::Scalar(128));
+        }
+    }
+    cv::imshow("tesd",test);
 }
 
 void Frame::ComputeDepth()
 {
     // 输入： 左右图像及其匹配的特征点
     mDepth.resize(mKeyPointsL.size(), -1);
-    std::vector<cv::DMatch> match;
 
-    for(int i = 0 ; i < mMatch.size() ; ++i)
-    {
-        if(mMatch[i] != -1)
-        {
-            cv::DMatch m;
-            m.trainIdx = i;
-            m.queryIdx = mMatch[i];
-        }
-    }
+    /** 1.块匹配 SAD  **/
 
-    cv::Mat test;
-    cv::drawMatches(mImgL, mKeyPointsL, mImgR, mKeyPointsR, match,test);
-    cv::imshow("tesd",test);
 
 }
 
