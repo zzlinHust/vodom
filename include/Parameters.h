@@ -12,7 +12,6 @@ struct CameraParam
     double cx;
     double cy;
     double s; // 倾斜参数,一般为0
-
     double b; // 双目基线长
 };
 
@@ -36,6 +35,12 @@ struct FeatureExtractionParam
     unsigned int thresh_FAST_min = 3;// 最低FAST阈值
     unsigned int rad_FAST_orient = 15;// FAST角点方向半径
     float scale_factor = 1.2;// 金字塔尺度因子
+};
+
+
+struct MatcherParam
+{
+
 };
 
 

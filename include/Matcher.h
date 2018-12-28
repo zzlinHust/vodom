@@ -1,0 +1,37 @@
+//
+// Created by cbt on 18-12-25.
+//
+
+#ifndef MYSLAM_MATCHER_H
+#define MYSLAM_MATCHER_H
+
+#include "common_include.h"
+#include "Input.h"
+
+namespace myslam
+{
+class Matcher
+{
+public:
+    typedef std::shared_ptr<Matcher> Ptr;
+
+    Matcher(MatcherParam param);
+
+    Matcher(){};
+
+    ~Matcher(){}
+
+    int HammingDistance(const cv::Mat &a, const cv::Mat &b);
+
+    void StereoMatch(Input *input);
+
+private:
+    float ComputeSTAD(const cv::Mat &temp, const cv::Mat &win, const float avg_diff, float thresh = 30);// avg_diff = win_avg - temp_avg;
+
+};
+
+
+
+}
+
+#endif //MYSLAM_MATCHER_H

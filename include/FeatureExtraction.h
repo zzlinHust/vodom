@@ -7,7 +7,6 @@
 
 #include "common_include.h"
 #include "Parameters.h"
-
 namespace myslam
 {
 
@@ -24,18 +23,27 @@ class FeatureExtraction
 public:
     typedef std::shared_ptr<FeatureExtraction> Ptr;
 
-    std::vector<cv::Mat> mImagePyramid;
-    FeatureExtractionParam mParam;
-
     FeatureExtraction(const FeatureExtractionParam &_param);
 
     FeatureExtraction();
 
     ~FeatureExtraction();
 
-    void Extract(cv::Mat _img , std::vector<cv::KeyPoint> &_keyPoints , cv::OutputArray _descriptor);
+    void Extract(std::vector<cv::Mat> &imgPyr , std::vector<cv::KeyPoint> &_keyPoints , cv::OutputArray _descriptor);
+
+    size_t GetLevels() { return nLevels; }
+
+    float GetScaleFactor() { return scaleFactor; }
+    float GetScale(int i) { return mScale[i] ;}
 
 private:
+
+    size_t nFeatures;
+    size_t nLevels;
+    unsigned int thresh_FAST;
+    unsigned int thresh_FAST_min;
+    unsigned int radius_FAST;
+    float scaleFactor;
 
     std::vector<float> mScale;
     std::vector<float> mSigma;
@@ -46,17 +54,17 @@ private:
     unsigned int mPatchSize;
     unsigned int mEdgePreserve;
 
-    void ExtractSingleLevel(std::vector<cv::KeyPoint> *_keyPoints , cv::Mat *_descriptor , int level);
+    void ExtractSingleLevel(cv::Mat &img, std::vector<cv::KeyPoint> *_keyPoints , cv::Mat *_descriptor , int level);
 
-    void ComputePyramid(cv::Mat &src);
+    void ComputePyramid(std::vector<cv::Mat> &imgPyr);
 
-    void Detect(std::vector<cv::KeyPoint> &_keyPoints , int level);
+    void Detect(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints , int level);
 
     void SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::Point2i minP, cv::Point2i maxP, int level);
 
-    void ComputeAngle(std::vector<cv::KeyPoint> &_keyPoints, int level);
+    void ComputeAngle(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, int level);
 
-    void ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints, cv::Mat &_descriptor, int level);
+    void ComputeDescriptor(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, cv::Mat &_descriptor, int level);
 
 };
 }

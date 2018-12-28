@@ -5,7 +5,7 @@
 #ifndef MYSLAM_G2O_TYPES_H
 #define MYSLAM_G2O_TYPES_H
 
-#include "myslam/common_include.h"
+#include "common_include.h"
 #include "camera.h"
 
 #include <g2o/core/base_vertex.h>

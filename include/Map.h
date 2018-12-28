@@ -4,11 +4,16 @@
 
 #ifndef MYSLAM_MAP_H
 #define MYSLAM_MAP_H
-#include "myslam/mapPoint.h"
-#include "myslam/frame.h"
-#include "myslam/mapPoint.h"
+
+#include <unordered_map>
+#include "common_include.h"
+#include "MapPoint.h"
+#include "Frame.h"
+
 namespace myslam
 {
+class Frame;
+class MapPoint;
 
 class Map
 {

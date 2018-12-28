@@ -6,18 +6,19 @@
 #define VISUALODOMETRY_VISUAL_ODOMETRY_H
 
 
-#include "map.h"
 #include "common_include.h"
-#include "opencv2/features2d/features2d.hpp"
-
+#include "Map.h"
+#include "FeatureExtraction.h"
+#include "Frame.h"
+#include "Input.h"
 
 namespace myslam
 {
 
-class VisualOdometry
+class StereoOdometry
 {
 public:
-    typedef std::shared_ptr<VisualOdometry> Ptr;
+    typedef std::shared_ptr<StereoOdometry> Ptr;
     enum VOState
     {
         INITIALIZING = -1,
@@ -30,14 +31,11 @@ public:
     Frame::Ptr ref_;     // reference frame
     Frame::Ptr curr_;    // current frame
 
-    cv::Ptr<cv::ORB> orb_;   // orb detector and computer
-    std::vector<cv::Point3f> pts_3d_ref_;  // 3d points in reference frame
+    std::vector<cv::Point3f> pts_3d_local_;  // 3d points in reference frame
     std::vector<cv::KeyPoint> key_points_curr_; // key points in current frame
-    Mat descriptor_curr_; // descriptor in current frame
-    Mat descriptor_ref_;  // descriptor in reference frame
-    std::vector<cv::DMatch> feature_matches_;
+    std::vector<int> feature_matches_;
 
-    SE3 T_c_r_estimated_;  // the estimated pose of current frame
+    Sophus::SE3 T_c_r_estimated_;  // the estimated pose of current frame
     int num_inliers_;      // number of inlier features in icp
     int num_lost_;         // number of lost times
 
@@ -55,17 +53,31 @@ public:
 public:
     /** functions **/
 
-    VisualOdometry();
-    ~VisualOdometry();
+    StereoOdometry();
+    ~StereoOdometry();
 
     bool addFrame(Frame::Ptr frame);
 
 
-protected:
+private:
     /** inner operation **/
-    void extractKeyPoints();
-    void computeDescriptors();
-    void featureMatching();
+
+    void BruteForceMatching();  /// 仅匹配，无位姿
+
+    void OpticalFlowMatching(); /// 匹配，并有初始位姿
+
+    void DirectMethodMatching(); /// 匹配，并有初始位姿
+
+
+    void TrackKeyFrame();
+
+    void TrackLastFrame();
+
+    void TrackLocalMap();
+
+    void Stereoinitialization();
+
+
     void poseEstimationPnP();
     void setRef3DPoints();
 

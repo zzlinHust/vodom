@@ -2,8 +2,8 @@
 // Created by cbt on 18-5-29.
 //
 
-#include "myslam/camera.h"
-#include "myslam/config.h"
+#include "camera.h"
+#include "config.h"
 
 namespace myslam
 {

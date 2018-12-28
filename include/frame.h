@@ -8,8 +8,6 @@
 #include "myslam/common_include.h"
 #include "myslam/camera.h"
 
-namespace myslam
-{
 
 class Frame
 {
@@ -42,6 +40,6 @@ public:
 
 };
 
-}
+
 
 #endif //VISUALODOMETRY_FRAME_H

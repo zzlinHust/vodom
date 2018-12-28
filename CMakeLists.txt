@@ -33,10 +33,16 @@ set( THIRD_PARTY_LIBS
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 add_library( slam SHARED
-        src/Input.cpp
+        src/fortest.cpp
+
         src/FeatureExtraction.cpp
+        src/Input.cpp
         src/ORBextractor.cc
         src/Frame.cpp
+        src/Matcher.cpp
+        src/MapPoint.cpp
+        src/Map.cpp
+        src/StereoOdometry.cpp
 )
 
 target_link_libraries( slam

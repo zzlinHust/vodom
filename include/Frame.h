@@ -6,43 +6,46 @@
 #define MYSLAM_FRAME_H
 
 #include "common_include.h"
-#include "FeatureExtraction.h"
+#include "Input.h"
+#include "MapPoint.h"
 
 namespace myslam
 {
-
+class MapPoint;
 
 class Frame
 {
 public:
-    Frame(cv::Mat &imgL, cv::Mat &imgR);
+    typedef std::shared_ptr<Frame> Ptr;
+
+    Frame(unsigned int id, Input::Ptr input);
 
     ~Frame();
 
-    Eigen::Matrix3f mK;
-    cv::Mat mImgL, mImgR;
+    static Frame::Ptr CreateFrame(Input::Ptr input);
 
-    std::vector<cv::KeyPoint> mKeyPointsL, mKeyPointsR;
-    cv::Mat mDescL, mDescR;
+    void SetPose(Sophus::SE3 pose);
 
-    std::vector<int> mMatch;
+    /** **/
+    unsigned int mId;
+    Sophus::SE3 T_c_w_; // pose
+
+
+    /** camera intrinsics **/
+    cv::Mat mK;
+    float mbf;
+
+    /** input img info **/
+    cv::Mat mImage;
+    std::vector<cv::KeyPoint> mKeyPoints;
+    cv::Mat mDescriptor;
     std::vector<float> mDepth;
 
-    FeatureExtraction extraction;
+    /** map points **/
+//    std::vector<MapPoint::Ptr> mMapPoints;
+
 
 private:
-
-//    static float fx;
-//    static float fy;
-//    static float cx;
-//    static float cy;
-//    static float bl;
-
-    void ComputeDepth();
-
-    void StereoMatch();
-
-    int HammingDistance(const cv::Mat &a, const cv::Mat &b);
 
 
 };

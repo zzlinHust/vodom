@@ -274,31 +274,29 @@ static int bit_pattern_31_[256*4] =
 
 FeatureExtraction::FeatureExtraction()
 {
-    FeatureExtractionParam &param = mParam;
-    param.levels = 8;
-    param.thresh_FAST = 20;
-    param.thresh_FAST_min = 7;
-    param.feature_num = 1000;
-    param.scale_factor = 1.2;
 
-    size_t n = size_t(mParam.levels);
-    mPatchRadium = mParam.rad_FAST_orient;
+    nLevels = 8;
+    thresh_FAST = 20;
+    thresh_FAST_min = 7;
+    nFeatures = 1000;
+    scaleFactor = 1.2;
+
+    mPatchRadium = radius_FAST;
     mPatchSize = 2 * mPatchRadium + 1;
     mEdgePreserve = mPatchRadium + 1;
 
-    mImagePyramid.resize(n);
-    mFeaturesPyramid.resize(n);
-    mScale.resize(n);
-    mSigma.resize(n);
+    mFeaturesPyramid.resize(nFeatures);
+    mScale.resize(nFeatures);
+    mSigma.resize(nFeatures);
 
-    float factor = mParam.scale_factor;
+    float factor = scaleFactor;
     float scale = 1.0f / factor;
-    float nfeatures = mParam.feature_num * (1.0f - scale) / (1.0f - std::pow(scale, param.levels));
+    float nfeatures = nFeatures * (1.0f - scale) / (1.0f - std::pow(scale, nLevels));
     mScale[0] = 1.0f;
     mSigma[0] = 1.0f;
     int sum = mFeaturesPyramid[0] = static_cast<unsigned int>(cvRound(nfeatures));
 
-    for (int i = 1; i < n; ++i)
+    for (int i = 1 ; i < nLevels ; ++i)
     {
         nfeatures *= scale;
         mFeaturesPyramid[i] = static_cast<unsigned int>(cvRound(nfeatures));
@@ -306,8 +304,8 @@ FeatureExtraction::FeatureExtraction()
         mSigma[i] = factor * factor * mSigma[i-1];
         sum += mFeaturesPyramid[i];
     }
-    mFeaturesPyramid[n-1] -= sum - mParam.feature_num;
-    if (mFeaturesPyramid[n-1] < 0) mFeaturesPyramid[n-1] = 0;
+    mFeaturesPyramid[nLevels-1] -= sum - nFeatures;
+    if (mFeaturesPyramid[nLevels-1] < 0) mFeaturesPyramid[nLevels-1] = 0;
 
 
     const unsigned int half_patch_size = mPatchSize / 2;
@@ -329,26 +327,26 @@ FeatureExtraction::FeatureExtraction()
 
 }
 
-FeatureExtraction::FeatureExtraction(const FeatureExtractionParam &param) : mParam(param)
+FeatureExtraction::FeatureExtraction(const FeatureExtractionParam &param) : nFeatures(param.feature_num),
+        nLevels(param.levels), thresh_FAST(param.thresh_FAST), thresh_FAST_min(param.thresh_FAST_min),
+        radius_FAST(param.rad_FAST_orient), scaleFactor(param.scale_factor)
 {
-    size_t n = size_t(mParam.levels);
-    mPatchRadium = mParam.rad_FAST_orient;
+    mPatchRadium = radius_FAST;
     mPatchSize = 2 * mPatchRadium + 1;
     mEdgePreserve = mPatchRadium + 1;
 
-    mImagePyramid.resize(n);
-    mFeaturesPyramid.resize(n);
-    mScale.resize(n);
-    mSigma.resize(n);
+    mFeaturesPyramid.resize(nFeatures);
+    mScale.resize(nFeatures);
+    mSigma.resize(nFeatures);
 
-    float factor = mParam.scale_factor;
+    float factor = scaleFactor;
     float scale = 1.0f / factor;
-    float nfeatures = mParam.feature_num * (1.0f - scale) / (1.0f - std::pow(scale, param.levels));
+    float nfeatures = nFeatures * (1.0f - scale) / (1.0f - std::pow(scale, nLevels));
     mScale[0] = 1.0f;
     mSigma[0] = 1.0f;
     int sum = mFeaturesPyramid[0] = static_cast<unsigned int>(cvRound(nfeatures));
 
-    for (int i = 1; i < n; ++i)
+    for (int i = 1 ; i < nLevels ; ++i)
     {
         nfeatures *= scale;
         mFeaturesPyramid[i] = static_cast<unsigned int>(cvRound(nfeatures));
@@ -356,8 +354,8 @@ FeatureExtraction::FeatureExtraction(const FeatureExtractionParam &param) : mPar
         mSigma[i] = factor * factor * mSigma[i-1];
         sum += mFeaturesPyramid[i];
     }
-    mFeaturesPyramid[n-1] -= sum - mParam.feature_num;
-    if (mFeaturesPyramid[n-1] < 0) mFeaturesPyramid[n-1] = 0;
+    mFeaturesPyramid[nLevels-1] -= sum - nFeatures;
+    if (mFeaturesPyramid[nLevels-1] < 0) mFeaturesPyramid[nLevels-1] = 0;
 
 
     const unsigned int half_patch_size = mPatchSize / 2;
@@ -381,13 +379,13 @@ FeatureExtraction::FeatureExtraction(const FeatureExtractionParam &param) : mPar
 FeatureExtraction::~FeatureExtraction(){}
 
 
-void FeatureExtraction::Extract(cv::Mat _img, std::vector<cv::KeyPoint> &_keyPoints, cv::OutputArray &_descriptor)
+void FeatureExtraction::Extract(std::vector<cv::Mat> &imgPyr, std::vector<cv::KeyPoint> &_keyPoints, cv::OutputArray &_descriptor)
 {
 
-    ComputePyramid(_img);
-    vector<vector<cv::KeyPoint>> allKeyPoints(mParam.levels);
-    vector<cv::Mat> allDescriptor(mParam.levels);
-    vector<thread> allThreads(mParam.levels);
+    ComputePyramid(imgPyr);
+    vector<vector<cv::KeyPoint>> allKeyPoints(nLevels);
+    vector<cv::Mat> allDescriptor(nLevels);
+    vector<thread> allThreads(nLevels);
 
 //    for(int i = 0 ; i < mParam.levels ; ++i) /// 使用多线程加速并行提取每层金字塔特征
 //        allThreads[i] = thread(&FeatureExtraction::ExtractSingleLevel, this, &allKeyPoints[i], &allDescriptor[i], i);
@@ -397,10 +395,10 @@ void FeatureExtraction::Extract(cv::Mat _img, std::vector<cv::KeyPoint> &_keyPoi
 //        if(allThreads[i].joinable())
 //            allThreads[i].join();
 //    }
-    for(int i = 0 ; i < mParam.levels ; ++i)
-        ExtractSingleLevel(&allKeyPoints[i], &allDescriptor[i], i);
+    for(int i = 0 ; i < nLevels ; ++i)
+        ExtractSingleLevel(imgPyr[i], &allKeyPoints[i], &allDescriptor[i], i);
     auto des_it = allDescriptor.begin();
-    for(int i = 0 ; i < mParam.levels ; ++i)
+    for(int i = 0 ; i < nLevels ; ++i)
     {
         _keyPoints.insert(_keyPoints.end(), allKeyPoints[i].begin(), allKeyPoints[i].end());
         if(des_it->empty())
@@ -411,25 +409,25 @@ void FeatureExtraction::Extract(cv::Mat _img, std::vector<cv::KeyPoint> &_keyPoi
     cv::vconcat(allDescriptor, _descriptor);
 }
 
-void FeatureExtraction::ExtractSingleLevel(std::vector<cv::KeyPoint> *_keyPoints, cv::Mat *_descriptor, int level)
+void FeatureExtraction::ExtractSingleLevel(cv::Mat &img, std::vector<cv::KeyPoint> *_keyPoints, cv::Mat *_descriptor, int level)
 {
     /** 检测关键点 **/
-    Detect(*_keyPoints, level);
+    Detect(img, *_keyPoints, level);
 
     /** 计算关键点方向 **/
-    ComputeAngle(*_keyPoints, level);
+    ComputeAngle(img, *_keyPoints, level);
 
     /** 计算描述子 **/
-    ComputeDescriptor(*_keyPoints, *_descriptor, level);
+    ComputeDescriptor(img, *_keyPoints, *_descriptor, level);
 }
 
-void FeatureExtraction::ComputePyramid(cv::Mat &src)
+void FeatureExtraction::ComputePyramid(std::vector<cv::Mat> &imgPyr)
 {
-    mImagePyramid[0] = src;
-    for(int i = 1 ; i < mParam.levels ; ++i)
+    cv::Mat &src = imgPyr[0];
+    for(int i = 1 ; i < nLevels ; ++i)
     {
         cv::Size sz(cvRound((float)src.cols * mScale[i]), cvRound((float)src.rows * mScale[i]));
-        cv::resize(mImagePyramid[i-1], mImagePyramid[i], sz, 0, 0, cv::INTER_LINEAR);
+        cv::resize(imgPyr[i-1], imgPyr[i], sz, 0, 0, cv::INTER_LINEAR);
     }
 }
 
@@ -445,12 +443,12 @@ void FeatureExtraction::ComputePyramid(cv::Mat &src)
  * 对于图像，需要注意留边： FAST的方向计算需取半径内 patch 所有像素点进行计算。因此，图像上下左右必须至少分别预留半径长的像素；
  * 对于划分的格子，FAST选取半径为3的圆上的16个像素点，因此每个格子需要进行padding，保证能提取格子内所有像素的角点。
  */
-void FeatureExtraction::Detect(std::vector<cv::KeyPoint> &_keyPoints, int level)
+void FeatureExtraction::Detect(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, int level)
 {
     /* 计算留边后的图像边界和自适应的格子大小 */
     const int minX = mEdgePreserve , minY = mEdgePreserve;
-    const int maxX = mImagePyramid[level].cols - mEdgePreserve;
-    const int maxY = mImagePyramid[level].rows - mEdgePreserve;
+    const int maxX = img.cols - mEdgePreserve;
+    const int maxY = img.rows - mEdgePreserve;
     const float winSize = 30;
     const float width = maxX - minX;
     const float height = maxY - minY;
@@ -476,13 +474,13 @@ void FeatureExtraction::Detect(std::vector<cv::KeyPoint> &_keyPoints, int level)
             if(X_end > maxX) X_end = maxX;
 
             /** 注意格子加边3！！ **/
-            cv::Mat cellImg = mImagePyramid[level].rowRange(Y_begin-3,Y_end+3).colRange(X_begin-3,X_end+3);
+            cv::Mat cellImg = img.rowRange(Y_begin-3,Y_end+3).colRange(X_begin-3,X_end+3);
             vector<cv::KeyPoint> kpCell;
 
             /* 若格子提取不到角点，则降低阈值重新提取 */
-            cv::FAST(cellImg, kpCell, mParam.thresh_FAST, true);
+            cv::FAST(cellImg, kpCell, thresh_FAST, true);
             if(kpCell.empty())
-                cv::FAST(cellImg, kpCell, mParam.thresh_FAST_min, true);
+                cv::FAST(cellImg, kpCell, thresh_FAST_min, true);
 
             if(kpCell.size())
             {  /* 添加关键点信息 */
@@ -643,21 +641,20 @@ void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::
 /**
  *  灰度质心法计算方向
  */
-void FeatureExtraction::ComputeAngle(std::vector<cv::KeyPoint> &_keyPoints, int level)
+void FeatureExtraction::ComputeAngle(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, int level)
 {
-    cv::Mat &image = mImagePyramid[level];
     const int half_patch_size = mPatchSize / 2;
     for(auto &kp : _keyPoints)
     {
         int m_01 = 0, m_10 = 0;
-        const uchar* center = &image.at<uchar>(cvRound(kp.pt.y), cvRound(kp.pt.x));
+        const uchar* center = &img.at<uchar>(cvRound(kp.pt.y), cvRound(kp.pt.x));
 
         // Treat the center line differently, v=0
         for (int u = -half_patch_size ; u <= half_patch_size ; ++u)
             m_10 += u * center[u];
 
         // Go line by line in the circuI853lar patch
-        int step = (int)image.step1();
+        int step = (int)img.step1();
         for (int v = 1 ; v <= half_patch_size ; ++v)
         {
             // Proceed over the two lines
@@ -675,7 +672,7 @@ void FeatureExtraction::ComputeAngle(std::vector<cv::KeyPoint> &_keyPoints, int 
     }
 }
 
-void FeatureExtraction::ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints, cv::Mat &_descriptor, int level)
+void FeatureExtraction::ComputeDescriptor(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, cv::Mat &_descriptor, int level)
 {
     int nKeyPoints = int(_keyPoints.size());
     if( 0 == nKeyPoints )
@@ -684,8 +681,8 @@ void FeatureExtraction::ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints,
         return;
     }
 
-    cv::Mat img;
-    GaussianBlur(mImagePyramid[level], img, cv::Size(7,7), 2, 2, cv::BORDER_REFLECT_101);
+    cv::Mat imgBlur;
+    GaussianBlur(img, imgBlur, cv::Size(7,7), 2, 2, cv::BORDER_REFLECT_101);
 
     _descriptor = cv::Mat::zeros(nKeyPoints, 32, CV_8UC1);
 
@@ -696,8 +693,8 @@ void FeatureExtraction::ComputeDescriptor(std::vector<cv::KeyPoint> &_keyPoints,
         float angle = kpt.angle * toRad;
         float a = cos(angle), b = sin(angle);
 
-        const uchar* center = &img.at<uchar>(cvRound(kpt.pt.y), cvRound(kpt.pt.x));
-         const int step = (int)img.step;
+        const uchar* center = &imgBlur.at<uchar>(cvRound(kpt.pt.y), cvRound(kpt.pt.x));
+         const int step = (int)imgBlur.step;
 
         uchar *desc = _descriptor.ptr(i);
         const int *pattern = bit_pattern_31_;

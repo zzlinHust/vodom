@@ -7,9 +7,6 @@
 
 #include "common_include.h"
 
-namespace myslam
-{
-class Frame;
 
 class MapPoint
 {
@@ -33,6 +30,6 @@ public:
 
 
 
-}
+
 
 #endif //VISUALODOMETRY_MAPPOINT_H

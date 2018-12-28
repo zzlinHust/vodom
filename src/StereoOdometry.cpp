@@ -2,40 +2,25 @@
 // Created by cbt on 18-5-30.
 //
 
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
-#include <algorithm>
-#include <boost/timer.hpp>
 
-#include "myslam/config.h"
-#include "myslam/visual_odometry.h"
-#include "myslam/g2o_types.h"
+#include "StereoOdometry.h"
+//#include "g2o_types.h"
 
 
 namespace myslam
 {
 
-VisualOdometry::VisualOdometry() : state_(INITIALIZING) , ref_(nullptr) , curr_(nullptr) , map_(new Map) , num_lost_(0),
+StereoOdometry::StereoOdometry() : state_(INITIALIZING) , ref_(nullptr) , curr_(nullptr) , map_(new Map) , num_lost_(0),
                                    num_inliers_(0)
 {
-    num_of_features_    = Config::get<int> ( "number_of_features" );
-    scale_factor_       = Config::get<double> ( "scale_factor" );
-    level_pyramid_      = Config::get<int> ( "level_pyramid" );
-    match_ratio_        = Config::get<float> ( "match_ratio" );
-    max_num_lost_       = Config::get<int> ( "max_num_lost" );
-    min_inliers_        = Config::get<int> ( "min_inliers" );
-    key_frame_min_rot   = Config::get<double> ( "keyframe_rotation" );
-    key_frame_min_trans = Config::get<double> ( "keyframe_translation" );
-    orb_ = cv::ORB::create ( num_of_features_, scale_factor_, level_pyramid_ );
 
 }
 
 
-VisualOdometry::~VisualOdometry() {}
+StereoOdometry::~StereoOdometry() {
 
-
-bool VisualOdometry::addFrame(Frame::Ptr frame)
+}
+bool StereoOdometry::addFrame(Frame::Ptr frame)
 {
     switch ( state_ )
     {
@@ -44,20 +29,19 @@ bool VisualOdometry::addFrame(Frame::Ptr frame)
             state_ = OK;
             curr_ = ref_ = frame;
             map_->insertKeyFrame(frame);
-            extractKeyPoints();
-            computeDescriptors();
-            setRef3DPoints();  /// compute the 3d position of features in ref frame
+
+//            Stereoinitialization();
+
             break;
         }
 
         case OK:
         {
             curr_ = frame;
-            extractKeyPoints();
-            computeDescriptors();
-            featureMatching();
-            poseEstimationPnP();
 
+            // TODO: matching and estimate
+
+            /*
             if( checkEstimatedPose() ) // a good estimation
             {
                 curr_->T_c_w_ = T_c_r_estimated_ * ref_->T_c_w_;
@@ -77,6 +61,7 @@ bool VisualOdometry::addFrame(Frame::Ptr frame)
 
                 return false;
             }
+             */
             break;
         }
 
@@ -94,66 +79,35 @@ bool VisualOdometry::addFrame(Frame::Ptr frame)
 }
 
 
-void VisualOdometry::extractKeyPoints()
-{
-    orb_->detect( curr_->color_ , key_points_curr_);
-}
+
+//void StereoOdometry::featureMatching()
+//{
+//    /** match desp_ref and desp_curr , use OpenCV's brute force match 暴力匹配 **/
+//    std::vector<cv::DMatch> matches;
+//    cv::BFMatcher matcher ( cv::NORM_HAMMING );
+//    matcher.match( descriptor_ref_ , descriptor_curr_ , matches );
+//
+//    /** select the best matches **/
+//    float min_dis = std::min_element(
+//            matches.begin() , matches.end(),
+//            [] (const cv::DMatch &m1 , const cv::DMatch &m2)    /// lamda
+//            {
+//                return m1.distance < m2.distance;
+//            })->distance;
+//
+//    feature_matches_.clear();
+//    for ( cv::DMatch &m : matches)
+//        if( m.distance < std::max<float>( min_dis*match_ratio_ , 30.0))
+//            feature_matches_.push_back(m);
+//
+//
+//    std::cout << "good matches : " << feature_matches_.size() << std::endl;
+//
+//}
 
 
-void VisualOdometry::computeDescriptors()
-{
-    orb_->compute( curr_->color_ , key_points_curr_ , descriptor_curr_ );
-}
-
-
-void VisualOdometry::featureMatching()
-{
-    /** match desp_ref and desp_curr , use OpenCV's brute force match 暴力匹配 **/
-    std::vector<cv::DMatch> matches;
-    cv::BFMatcher matcher ( cv::NORM_HAMMING );
-    matcher.match( descriptor_ref_ , descriptor_curr_ , matches );
-
-    /** select the best matches **/
-    float min_dis = std::min_element(
-            matches.begin() , matches.end(),
-            [] (const cv::DMatch &m1 , const cv::DMatch &m2)    /// lamda
-            {
-                return m1.distance < m2.distance;
-            })->distance;
-
-    feature_matches_.clear();   //////   ?????????????????????? shao le
-    for ( cv::DMatch &m : matches)
-        if( m.distance < std::max<float>( min_dis*match_ratio_ , 30.0))
-            feature_matches_.push_back(m);
-
-
-    std::cout << "good matches : " << feature_matches_.size() << std::endl;
-
-}
-
-
-void VisualOdometry::setRef3DPoints()
-{
-    // select the features with depth measurement
-    pts_3d_ref_.clear();
-    descriptor_ref_ = Mat();
-
-    for( size_t i = 0 ; i < key_points_curr_.size() ; ++i)
-    {
-        double d = ref_->findDepth(key_points_curr_[i]);
-        if( d > 0 )
-        {
-            Vector3d p_cam = ref_->camera_->pixel2Camera(
-                    Vector2d( key_points_curr_[i].pt.x , key_points_curr_[i].pt.y) , d );
-            pts_3d_ref_.push_back( cv::Point3f( p_cam(0,0), p_cam(1,0), p_cam(2,0) ) );
-            descriptor_ref_.push_back(descriptor_curr_.row(i));
-        }
-    }
-
-}
-
-
-void VisualOdometry::poseEstimationPnP()
+/*
+void StereoOdometry::poseEstimationPnP()
 {
     // construct the 3d 2d observations
     std::vector<cv::Point3f> pts3d;
@@ -221,12 +175,10 @@ void VisualOdometry::poseEstimationPnP()
     );
 
 
-
-
 }
 
 
-bool VisualOdometry::checkEstimatedPose()
+bool StereoOdometry::checkEstimatedPose()
 {
     // check if the estimated pose is good
     if ( num_inliers_ < min_inliers_ )
@@ -244,7 +196,7 @@ bool VisualOdometry::checkEstimatedPose()
     return true;
 }
 
-bool VisualOdometry::checkKeyFrame()
+bool StereoOdometry::checkKeyFrame()
 {
     Sophus::Vector6d d = T_c_r_estimated_.log();
     Vector3d trans = d.head<3>();
@@ -254,11 +206,13 @@ bool VisualOdometry::checkKeyFrame()
     return false;
 }
 
-void VisualOdometry::addKeyFrame()
+void StereoOdometry::addKeyFrame()
 {
     std::cout << "adding a key-frame" << std::endl;
     map_->insertKeyFrame ( curr_ );
 }
+*/
+
 
 
 
