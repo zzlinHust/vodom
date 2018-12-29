@@ -7,6 +7,8 @@
 
 #include "common_include.h"
 #include "Input.h"
+#include "Frame.h"
+#include "g2o_types.h"
 
 namespace myslam
 {
@@ -21,13 +23,17 @@ public:
 
     ~Matcher(){}
 
-    int HammingDistance(const cv::Mat &a, const cv::Mat &b);
+    static int HammingDistance(const cv::Mat &a, const cv::Mat &b);
 
-    void StereoMatch(Input *input);
+    static void StereoMatch(Input *input);
+
+    static void DirectMethodMatching(Frame::Ptr cur_, Frame::Ptr pre_, FeatureExtraction::Ptr extract); /// 匹配，并有初始位姿
+
 
 private:
-    float ComputeSTAD(const cv::Mat &temp, const cv::Mat &win, const float avg_diff, float thresh = 30);// avg_diff = win_avg - temp_avg;
+    static float ComputeSTAD(const cv::Mat &temp, const cv::Mat &win, const float avg_diff, float thresh = 30);// avg_diff = win_avg - temp_avg;
 
+//    static int DirectMethodSingleLevel()
 };
 
 

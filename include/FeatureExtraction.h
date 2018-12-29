@@ -34,7 +34,7 @@ public:
     size_t GetLevels() { return nLevels; }
 
     float GetScaleFactor() { return scaleFactor; }
-    float GetScale(int i) { return mScale[i] ;}
+    float GetScale(int i) { return mScale[i]; }
 
 private:
 
@@ -62,7 +62,7 @@ private:
 
     void SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::Point2i minP, cv::Point2i maxP, int level);
 
-    void ComputeAngle(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, int level);
+    void ComputeAngle(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints);
 
     void ComputeDescriptor(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, cv::Mat &_descriptor, int level);
 

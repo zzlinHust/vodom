@@ -5,7 +5,7 @@
 #ifndef VISUALODOMETRY_CONFIG_H
 #define VISUALODOMETRY_CONFIG_H
 
-#include "myslam/common_include.h"
+#include "common_include.h"
 
 namespace myslam
 {

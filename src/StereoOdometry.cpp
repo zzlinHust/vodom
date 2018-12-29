@@ -5,7 +5,7 @@
 
 #include "StereoOdometry.h"
 //#include "g2o_types.h"
-
+using namespace std;
 
 namespace myslam
 {
@@ -14,12 +14,63 @@ StereoOdometry::StereoOdometry() : state_(INITIALIZING) , ref_(nullptr) , curr_(
                                    num_inliers_(0)
 {
 
+    FeatureExtractionParam param;
+    param.levels = 8;
+    param.thresh_FAST = 20;
+    param.thresh_FAST_min = 7;
+    param.feature_num = 1000;
+    param.scale_factor = 1.2;
+    CameraParam cameraParam;
+    cameraParam.b = 386.1448;
+    cameraParam.fx = 718.856;
+    cameraParam.fy = 718.856;
+    cameraParam.cx = 607.1928;
+    cameraParam.cy = 185.2157;
+    cameraParam.s = 0.0;
+
+    mExtraction = std::make_shared<myslam::FeatureExtraction>(param);
+
+    mK = cv::Mat::eye(3,3,CV_32F);
+    mK.at<float>(0,0) = 718.856;
+    mK.at<float>(1,1) = 718.856;
+    mK.at<float>(0,2) = 607.1928;
+    mK.at<float>(1,2) = 185.2157;
+
+    // 图像矫正系数
+    // [k1 k2 p1 p2 k3]
+    mDistCoef = cv::Mat(4,1,CV_32F);
+    mDistCoef.at<float>(0) = 0.0;
+    mDistCoef.at<float>(1) = 0.0;
+    mDistCoef.at<float>(2) = 0.0;
+    mDistCoef.at<float>(3) = 0.0;
+    const float k3 = 0.0;
+    if(k3 != 0)
+    {
+        mDistCoef.resize(5);
+        mDistCoef.at<float>(4) = k3;
+    }
+    mbf = 386.1448;
+
+    mCamera = make_shared<Camera>(cameraParam.fx, cameraParam.fy, cameraParam.cx, cameraParam.cy, mbf);
+    mMatcher = make_shared<Matcher>();
+
+    mViewer = new Viewer;
+    mViewer->SetMap(map_);
+
+    viewer = new thread(&Viewer::Run, mViewer);
 }
 
 
 StereoOdometry::~StereoOdometry() {
 
 }
+
+void StereoOdometry::GrabImage(cv::Mat img_l, cv::Mat img_r)
+{
+    myslam::Input::Ptr input = std::make_shared<myslam::Input>(img_l, img_r, mK, mDistCoef, mbf, mExtraction);
+    addFrame(Frame::CreateFrame(input, mCamera));
+}
+
 bool StereoOdometry::addFrame(Frame::Ptr frame)
 {
     switch ( state_ )
@@ -27,11 +78,9 @@ bool StereoOdometry::addFrame(Frame::Ptr frame)
         case INITIALIZING:
         {
             state_ = OK;
-            curr_ = ref_ = frame;
-            map_->insertKeyFrame(frame);
-
-//            Stereoinitialization();
-
+            curr_ = pre_ = frame;
+            frame->SetPose(Sophus::SE3());
+            addKeyFrame();
             break;
         }
 
@@ -40,7 +89,16 @@ bool StereoOdometry::addFrame(Frame::Ptr frame)
             curr_ = frame;
 
             // TODO: matching and estimate
+            /** 1. 直接法跟踪特征点并获取初始位姿 **/
+            mMatcher->DirectMethodMatching(curr_, pre_, mExtraction);
 
+            /** 2. 特征点匹配 **/
+            FeatureMatching();
+
+            /** 3. 重投影位姿优化 **/
+
+            addKeyFrame();
+            mViewer->SetPose(curr_->GetPose());
             /*
             if( checkEstimatedPose() ) // a good estimation
             {
@@ -62,6 +120,7 @@ bool StereoOdometry::addFrame(Frame::Ptr frame)
                 return false;
             }
              */
+            pre_ = curr_;
             break;
         }
 
@@ -78,6 +137,33 @@ bool StereoOdometry::addFrame(Frame::Ptr frame)
     return true;
 }
 
+void StereoOdometry::addKeyFrame()
+{
+    for(int i = 0 ; i < curr_->mKeyPoints.size() ; ++i)
+    {
+        float z = curr_->mDepth[i];
+        if(z > 0)
+        {
+            auto &pt = curr_->mKeyPoints[i].pt;
+            Eigen::Vector3d p_w = curr_->mCamera->pixel2World(
+                    Eigen::Vector2d(pt.x, pt.y), curr_->T_c_w_, z);
+            auto point = MapPoint::createMapPoint(p_w);
+            point->mDescriptor = curr_->mDescriptor.row(i).clone();
+            point->mDirObv = p_w - curr_->GetCameraCenter();
+            point->mDirObv.normalize();
+
+            map_->insertMapPoint(point);
+            curr_->mMapPoints[i] = point;
+        }
+    }
+    map_->insertKeyFrame(curr_);
+    ref_ = curr_;
+}
+
+void StereoOdometry::FeatureMatching()
+{
+    const auto &pre_img = pre_->mImagePyr[0];
+}
 
 
 //void StereoOdometry::featureMatching()

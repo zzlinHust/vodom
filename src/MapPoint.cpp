@@ -13,10 +13,10 @@ MapPoint::MapPoint( unsigned int  id , Eigen::Vector3d position , Eigen::Vector3
 
 MapPoint::~MapPoint(){}
 
-MapPoint::Ptr MapPoint::createMapPoint()
+MapPoint::Ptr MapPoint::createMapPoint(Eigen::Vector3d position)
 {
     static unsigned int factory_id = 0;
-    return MapPoint::Ptr( new MapPoint( factory_id++, Vector3d(0,0,0), Vector3d(0,0,0) ) );
+    return MapPoint::Ptr( new MapPoint( factory_id++, position, Vector3d(0,0,0) ) );
 }
 
 }

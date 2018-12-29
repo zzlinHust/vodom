@@ -2,9 +2,9 @@
 // Created by cbt on 18-12-25.
 //
 #include <algorithm>
-#include <Input.h>
 #include "Input.h"
 #include "Matcher.h"
+#include "g2o_types.h"
 
 #include "fortest.h"
 
@@ -219,15 +219,9 @@ void Matcher::StereoMatch(Input* input)
             input->mLeft.depth[i] = input->mbf / disparity;
             dist_score.emplace_back(min_STAD_sum, i);
         }
-
-
-        // 剔除外点
-
-//        cout << min_STAD_sum << endl;
-
-
     }
 
+    /** 筛选准确匹配 **/
     sort(dist_score.begin(), dist_score.end());
     for(auto it = dist_score.begin() + dist_score.size() * select_ratio ; it != dist_score.end() ; ++it)
     {
@@ -259,6 +253,91 @@ void Matcher::StereoMatch(Input* input)
         cv::waitKey();
     }
      */
+}
+
+
+void Matcher::DirectMethodMatching(Frame::Ptr cur_, Frame::Ptr pre_, FeatureExtraction::Ptr extract)
+{
+    const auto &cur_pyr = cur_->mImagePyr;
+    const auto &cur_kpt = cur_->mKeyPoints;
+    const auto &cur_des = cur_->mDescriptor;
+
+    const auto &pre_pyr = pre_->mImagePyr;
+    const auto &pre_kpt = pre_->mKeyPoints;
+    const auto &pre_des = pre_->mDescriptor;
+    const auto &pos_world = pre_->mMapPoints;
+
+    auto &Tcw = cur_->T_c_w_;
+
+    const float fx = cur_->mCamera->fx_;
+    const float fy = cur_->mCamera->fy_;
+    const float cx = cur_->mCamera->cx_;
+    const float cy = cur_->mCamera->cy_;
+
+    size_t ii = 1; // 保证金字塔至少3层
+    size_t ini = cur_pyr.size() - 1;
+
+    if(cur_pyr.size() > 4)
+    {
+        ii = 2;
+        ini = (ini >> 1) << 1;
+    }
+
+    Tcw = pre_->T_c_w_;
+    g2o::SE3Quat se3( Tcw.rotation_matrix(), Tcw.translation() );
+    for(size_t i = ini ; i != 0 ; i -= ii )
+    {
+        float scale = extract->GetScale(i);
+        // 直接法跟踪特征点
+        float pfx = scale * fx;
+        float pfy = scale * fy;
+        float pcx = scale * cx;
+        float pcy = scale * cy;
+
+        // 初始化g2o
+        typedef g2o::BlockSolver<g2o::BlockSolverTraits<6,1>> DirectBlock;  // 求解的向量是6＊1的
+        DirectBlock::LinearSolverType* linearSolver = new g2o::LinearSolverDense< DirectBlock::PoseMatrixType > ();
+        DirectBlock* solver_ptr = new DirectBlock ( linearSolver );
+
+        g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr ); // L-M
+        g2o::SparseOptimizer optimizer;
+        optimizer.setAlgorithm ( solver );
+        optimizer.setVerbose( false );
+
+        g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap();
+        pose->setEstimate ( se3 );
+        pose->setId ( 0 );
+        optimizer.addVertex ( pose );
+
+
+        int id = 1;
+        for(int j = 0 ; j < pos_world.size() ; ++j)
+        {
+            const auto &pos = pos_world[j];
+            auto pt = pre_kpt[j].pt;
+            if(pos)
+            {
+                EdgeDirect *edge = new EdgeDirect(pos->mPos3d,fx,fy,cx,cy,&cur_pyr[i]);
+                edge->setVertex(0, pose);
+                edge->setMeasurement(double(pre_pyr[i].at<uchar>(scale * pt)));
+                edge->setInformation( Eigen::Matrix<double,1,1>::Identity());
+                edge->setId(id++);
+                optimizer.addEdge ( edge );
+            }
+        }
+
+        optimizer.initializeOptimization();
+//        log("match", "begin opt");
+        optimizer.optimize ( 30 );
+
+        se3 = pose->estimate();
+    }
+
+    Tcw = Sophus::SE3(se3.rotation(), se3.translation());
+    cout << Tcw.translation().transpose() << endl;
+//    Tcw = se3.to_homogeneous_matrix();
+
+//    Tcw = se3;
 }
 
 }

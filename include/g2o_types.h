@@ -6,7 +6,8 @@
 #define MYSLAM_G2O_TYPES_H
 
 #include "common_include.h"
-#include "camera.h"
+#include "Camera.h"
+#include "fortest.h"
 
 #include <g2o/core/base_vertex.h>
 #include <g2o/core/base_unary_edge.h>
@@ -21,7 +22,7 @@
 namespace myslam
 {
 
-class EdgeProjectXYZRGBD : public g2o::BaseBinaryEdge<3, Eigen::Vector3d, g2o::VertexSBAPointXYZ , g2o::VertexSE3Expmap>
+class EdgeProjectXYZRGBD : public g2o::BaseBinaryEdge<3,Eigen::Vector3d, g2o::VertexSBAPointXYZ , g2o::VertexSE3Expmap>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -35,7 +36,7 @@ public:
 
 
 // only to optimize the pose , not point
-class EdgeProjectXYZRGBDPoseOnly : public g2o::BaseUnaryEdge<3, Eigen::Vector3d, g2o::VertexSE3Expmap>
+class EdgeProjectXYZRGBDPoseOnly : public g2o::BaseUnaryEdge<3,Eigen::Vector3d, g2o::VertexSE3Expmap>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -46,7 +47,7 @@ public:
     virtual bool read( std::istream& in ){}
     virtual bool write( std::ostream& out) const {}
 
-    Vector3d point_;
+    Eigen::Vector3d point_;
 
 };
 
@@ -62,9 +63,47 @@ public:
     virtual bool read( std::istream& in ){}
     virtual bool write(std::ostream& os) const {};
 
-    Vector3d point_;
+    Eigen::Vector3d point_;
     Camera* camera_;
 };
+
+
+
+
+class EdgeDirect : public g2o::BaseUnaryEdge<1, double, g2o::VertexSE3Expmap>
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    EdgeDirect(){}
+    EdgeDirect(Eigen::Vector3d pos, float fx, float fy, float cx, float cy, const cv::Mat *img);
+
+    void computeError() override ;
+    void linearizeOplus() override ;
+
+    virtual bool read( std::istream& in ){}
+    virtual bool write(std::ostream& os) const {};
+
+
+public:
+    Eigen::Vector3d pos_world;         // 3D point in world frame
+    float cx_, cy_, fx_, fy_;// Camera intrinsics
+    const cv::Mat* image_ = nullptr;          // reference image
+
+protected:
+    inline float getPixelValue ( float x, float y )
+    {
+        uchar* data = & image_->data[ int ( y ) * image_->step + int ( x ) ];
+        float xx = x - floor ( x );
+        float yy = y - floor ( y );
+        return float (
+                ( 1-xx ) * ( 1-yy ) * data[0] + \
+                xx* ( 1-yy ) * data[1] + \
+                ( 1-xx ) * yy * data[image_->step] + \
+                xx * yy * data[image_->step+1] );
+    }
+};
+
 
 }
 

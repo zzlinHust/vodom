@@ -23,13 +23,13 @@ public:
 
     ~MapPoint();
 
-    static MapPoint::Ptr createMapPoint();
+    static MapPoint::Ptr createMapPoint(Eigen::Vector3d pos);
 
     unsigned int mId;
     Eigen::Vector3d mPos3d;
     Eigen::Vector3d mDirObv;
     cv::Mat mDescriptor;
-//    Frame::Ptr mRefFrame;
+    std::shared_ptr<Frame> mRefFrame;
 
 
 private:

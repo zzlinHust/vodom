@@ -11,7 +11,11 @@
 #include "FeatureExtraction.h"
 #include "Frame.h"
 #include "Input.h"
+#include "Camera.h"
+#include "Matcher.h"
+#include "Viewer.h"
 
+#include <thread>
 namespace myslam
 {
 
@@ -26,10 +30,14 @@ public:
         LOST
     };
 
+    Viewer *mViewer;
+    std::thread *viewer;
+
     VOState state_;      // current vo status
     Map::Ptr map_;       // map with all frames and map points
     Frame::Ptr ref_;     // reference frame
     Frame::Ptr curr_;    // current frame
+    Frame::Ptr pre_;
 
     std::vector<cv::Point3f> pts_3d_local_;  // 3d points in reference frame
     std::vector<cv::KeyPoint> key_points_curr_; // key points in current frame
@@ -50,6 +58,15 @@ public:
     double key_frame_min_rot;  // minimal rotation of two key-frames
     double key_frame_min_trans; // mimimal translation of two key-frames
 
+    cv::Mat mK;
+    cv::Mat mDistCoef;
+    float mbf;
+
+    Camera::Ptr mCamera;
+
+    Matcher::Ptr mMatcher;
+
+
 public:
     /** functions **/
 
@@ -58,16 +75,17 @@ public:
 
     bool addFrame(Frame::Ptr frame);
 
+    void GrabImage(cv::Mat img_l, cv::Mat img_r);
+
 
 private:
     /** inner operation **/
 
+    void FeatureMatching();
+
     void BruteForceMatching();  /// 仅匹配，无位姿
 
     void OpticalFlowMatching(); /// 匹配，并有初始位姿
-
-    void DirectMethodMatching(); /// 匹配，并有初始位姿
-
 
     void TrackKeyFrame();
 
@@ -75,15 +93,18 @@ private:
 
     void TrackLocalMap();
 
-    void Stereoinitialization();
+    void StereoInitialization();
 
 
     void poseEstimationPnP();
+
     void setRef3DPoints();
 
     void addKeyFrame();
     bool checkEstimatedPose();
     bool checkKeyFrame();
+
+    FeatureExtraction::Ptr mExtraction;
 
 };
 

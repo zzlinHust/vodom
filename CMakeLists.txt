@@ -3,7 +3,7 @@ project(myslam)
 
 
 set( CMAKE_CXX_COMPILER "g++" )
-set( CMAKE_BUILD_TYPE "Debug" )
+set( CMAKE_BUILD_TYPE "Release" )
 set( CMAKE_CXX_FLAGS "-std=c++11 -march=native -O3" )
 
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules )
@@ -22,10 +22,14 @@ include_directories( ${Sophus_INCLUDE_DIRS} )
 # G2O
 find_package( G2O REQUIRED )
 include_directories( ${G2O_INCLUDE_DIRS} )
+#Pangolin
+find_package(Pangolin REQUIRED)
+include_directories(${Pangolin_INCLUDE_DIRS})
 
 set( THIRD_PARTY_LIBS
         ${OpenCV_LIBS}
         ${Sophus_LIBRARIES}
+        ${Pangolin_LIBRARIES}
         g2o_core g2o_stuff g2o_types_sba
         -lpthread
         )
@@ -34,7 +38,6 @@ include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 add_library( slam SHARED
         src/fortest.cpp
-
         src/FeatureExtraction.cpp
         src/Input.cpp
         src/ORBextractor.cc
@@ -43,6 +46,10 @@ add_library( slam SHARED
         src/MapPoint.cpp
         src/Map.cpp
         src/StereoOdometry.cpp
+        src/config.cpp
+        src/Camera.cpp
+        src/g2o_types.cpp
+        src/Viewer.cpp
 )
 
 target_link_libraries( slam

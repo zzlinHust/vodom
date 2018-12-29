@@ -283,7 +283,7 @@ FeatureExtraction::FeatureExtraction()
 
     mPatchRadium = radius_FAST;
     mPatchSize = 2 * mPatchRadium + 1;
-    mEdgePreserve = mPatchRadium + 1;
+    mEdgePreserve = 19;
 
     mFeaturesPyramid.resize(nFeatures);
     mScale.resize(nFeatures);
@@ -333,7 +333,7 @@ FeatureExtraction::FeatureExtraction(const FeatureExtractionParam &param) : nFea
 {
     mPatchRadium = radius_FAST;
     mPatchSize = 2 * mPatchRadium + 1;
-    mEdgePreserve = mPatchRadium + 1;
+    mEdgePreserve = 19; // 18.3848
 
     mFeaturesPyramid.resize(nFeatures);
     mScale.resize(nFeatures);
@@ -387,10 +387,10 @@ void FeatureExtraction::Extract(std::vector<cv::Mat> &imgPyr, std::vector<cv::Ke
     vector<cv::Mat> allDescriptor(nLevels);
     vector<thread> allThreads(nLevels);
 
-//    for(int i = 0 ; i < mParam.levels ; ++i) /// 使用多线程加速并行提取每层金字塔特征
+//    for(int i = 0 ; i < nLevels ; ++i) /// 使用多线程加速并行提取每层金字塔特征
 //        allThreads[i] = thread(&FeatureExtraction::ExtractSingleLevel, this, &allKeyPoints[i], &allDescriptor[i], i);
 //
-//    for(int i = 0 ; i < mParam.levels ; ++i)
+//    for(int i = 0 ; i < nLevels ; ++i)
 //    {
 //        if(allThreads[i].joinable())
 //            allThreads[i].join();
@@ -415,7 +415,7 @@ void FeatureExtraction::ExtractSingleLevel(cv::Mat &img, std::vector<cv::KeyPoin
     Detect(img, *_keyPoints, level);
 
     /** 计算关键点方向 **/
-    ComputeAngle(img, *_keyPoints, level);
+    ComputeAngle(img, *_keyPoints);
 
     /** 计算描述子 **/
     ComputeDescriptor(img, *_keyPoints, *_descriptor, level);
@@ -440,7 +440,7 @@ void FeatureExtraction::ComputePyramid(std::vector<cv::Mat> &imgPyr)
  *
  * Attention：
  * 若使用设置的FAST阈值提取不到角点，则降低阈值重新提取，保证能够提取到足够数量的角点；
- * 对于图像，需要注意留边： FAST的方向计算需取半径内 patch 所有像素点进行计算。因此，图像上下左右必须至少分别预留半径长的像素；
+ * 对于图像，需要注意留边： FAST的方向计算需取半径内 patch 所有像素点进行计算。描述子计算最大有18.38像素，图像上下左右必须至少分别预留足够像素；
  * 对于划分的格子，FAST选取半径为3的圆上的16个像素点，因此每个格子需要进行padding，保证能提取格子内所有像素的角点。
  */
 void FeatureExtraction::Detect(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, int level)
@@ -641,7 +641,7 @@ void FeatureExtraction::SortKeyPoint(std::vector<cv::KeyPoint> &_keyPoints, cv::
 /**
  *  灰度质心法计算方向
  */
-void FeatureExtraction::ComputeAngle(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints, int level)
+void FeatureExtraction::ComputeAngle(cv::Mat &img, std::vector<cv::KeyPoint> &_keyPoints)
 {
     const int half_patch_size = mPatchSize / 2;
     for(auto &kp : _keyPoints)

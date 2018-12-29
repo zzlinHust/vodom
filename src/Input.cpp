@@ -46,15 +46,15 @@ Input::Input(cv::Mat left, cv::Mat right, cv::Mat K, cv::Mat distCoef, float bf,
     threadR.join();
 
     /** 3. 双目匹配及深度计算 **/
-    Matcher matcher;
-    matcher.StereoMatch(this);
+    Matcher::StereoMatch(this);
 
-    cv::Mat out,outr;
-    cv::drawKeypoints(mLeft.imgPyr[0],mLeft.keyPoints,out);
-    cv::drawKeypoints(mRight.imgPyr[0],mRight.keyPoints,outr);
-    cv::imshow("out",out);
-    cv::imshow("outr",outr);
-    cv::waitKey();
+//    cv::Mat out,outr;
+//    cv::drawKeypoints(mLeft.imgPyr[0],mLeft.keyPoints,out);
+//    cv::drawKeypoints(mRight.imgPyr[0],mRight.keyPoints,outr);
+//    cv::imshow("out",out);
+//    cv::imshow("outr",outr);
+//    cv::waitKey(1);
+
 }
 
 

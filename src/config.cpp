@@ -2,7 +2,7 @@
 // Created by cbt on 18-5-30.
 //
 
-#include "myslam/config.h"
+#include "config.h"
 
 
 namespace myslam

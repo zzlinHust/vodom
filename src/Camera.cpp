@@ -2,8 +2,11 @@
 // Created by cbt on 18-5-29.
 //
 
-#include "camera.h"
+#include "Camera.h"
 #include "config.h"
+using Eigen::Vector3d;
+using Eigen::Vector2d;
+using Sophus::SE3;
 
 namespace myslam
 {
@@ -14,7 +17,7 @@ Camera::Camera()
     fy_ = Config::get<float>("camera.fy");
     cx_ = Config::get<float>("camera.cx");
     cy_ = Config::get<float>("camera.cy");
-    depth_scale_ = Config::get<float>("camera.depth_scale");
+    bf_ = Config::get<float>("camera.depth_scale");
 
     K = ( cv::Mat_<double>(3,3)<<
                                 fx_, 0  , cx_,
