@@ -47,6 +47,8 @@ int main(int argc, char **argv)
         odom->GrabImage(imLeft, imRight);
         myslam::log("main", "finish\n");
 
+//        sleep(10);
+
         //myslam::log("main", "track finish \n");
         if(ni == 10000) break;
     }

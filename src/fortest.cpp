@@ -22,4 +22,63 @@ void log(const std::string &where, const std::string &msg)
     last = now;
 }
 
+void debug_direct_method(Frame::Ptr &pre, Frame::Ptr &cur, int level, g2o::SE3Quat se3, float scale)
+{
+    const float fx = scale * cur->mCamera->fx_;
+    const float fy = scale * cur->mCamera->fy_;
+    const float cx = scale * cur->mCamera->cx_;
+    const float cy = scale * cur->mCamera->cy_;
+
+    cout << "level : " << level << endl;
+
+    cv::Mat img1, img2, img3;
+
+    img1 = pre->mImagePyr[level].clone();
+    img2 = cur->mImagePyr[level].clone();
+
+    if(level == 0)
+    {
+        for(int i = 0 ; i < cur->mDepth.size() ; ++i)
+        {
+            float z = cur->mDepth[i];
+            if(z > 0)
+                cv::circle(img2, cur->mKeyPoints[i].pt, 5, cv::Scalar(255));
+
+        }
+
+        auto &depth = pre->mDepth;
+        auto &pos_3d = pre->mMapPoints;
+        for(int i = 0 ; i < depth.size() ; ++i )
+        {
+            if(depth[i] > 0)
+            {
+                auto pt = scale * pre->mKeyPoints[i].pt;
+                Eigen::Vector3d pos_local = se3.map(pos_3d[i]->mPos3d);
+                double x = pos_local[0];
+                double y = pos_local[1];
+                double iz = 1.0 / pos_local[2];
+                float u = fx * x * iz + cx;
+                float v = fy * y * iz + cy;
+
+                cv::Point2f kp2(u,v+img1.rows);
+
+                cv::vconcat(img1,img2,img3);
+
+                cv::circle(img3,pt,5,cv::Scalar(200));
+                cv::circle(img3, kp2, 1, cv::Scalar(200));
+                cv::line(img3,pt, kp2, cv::Scalar(255));
+
+                cv::Point2f ppp(40,15);
+                cv::rectangle(img3,kp2-ppp,kp2+ppp,cv::Scalar(200));
+
+                cv::imshow("con",img3);
+                cv::waitKey();
+
+            }
+        }
+    }
+
+
+}
+
 }

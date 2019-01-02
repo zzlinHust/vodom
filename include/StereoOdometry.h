@@ -83,6 +83,8 @@ private:
 
     void FeatureMatching();
 
+    void PoseOptimization();
+
     void BruteForceMatching();  /// 仅匹配，无位姿
 
     void OpticalFlowMatching(); /// 匹配，并有初始位姿

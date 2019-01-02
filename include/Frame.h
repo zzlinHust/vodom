@@ -35,6 +35,8 @@ public:
 
     cv::Mat GetPose();
 
+    void GetKeyPointsInArea(cv::Point2f pos, int radium , std::vector<size_t> &candidates);
+
     /** **/
     unsigned int mId;
     Sophus::SE3 T_c_w_; // pose

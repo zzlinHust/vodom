@@ -4,6 +4,7 @@
 
 
 #include "StereoOdometry.h"
+
 //#include "g2o_types.h"
 using namespace std;
 
@@ -57,7 +58,7 @@ StereoOdometry::StereoOdometry() : state_(INITIALIZING) , ref_(nullptr) , curr_(
     mViewer = new Viewer;
     mViewer->SetMap(map_);
 
-    viewer = new thread(&Viewer::Run, mViewer);
+//    viewer = new thread(&Viewer::Run, mViewer);
 }
 
 
@@ -162,7 +163,94 @@ void StereoOdometry::addKeyFrame()
 
 void StereoOdometry::FeatureMatching()
 {
-    const auto &pre_img = pre_->mImagePyr[0];
+    /**
+     *  根据直接法得到的初始位姿,将上一帧三维点投影到当前帧，在区域内查找出最佳匹配的点。
+     */
+    const auto &map_points = pre_->mMapPoints;
+    const auto &key_points = curr_->mKeyPoints;
+    const auto &descriptor = curr_->mDescriptor;
+
+    /** 1. 投影3d点到当前帧,获取候选匹配特征点 **/
+    vector<vector<pair<float, int>>> matches(key_points.size());   // 与当前帧的特征可能匹配的地图点
+    for(int i = 0 ; i < map_points.size() ; ++i)
+    {
+        auto &point = map_points[i];
+        Eigen::Vector2d uv = pre_->mCamera->world2Pixel(point->mPos3d, curr_->T_c_w_);
+
+        vector<size_t> candidates;
+        curr_->GetKeyPointsInArea(cv::Point2f(uv[0], uv[1]), 15, candidates);
+
+        int best_dist = 100;
+        int best_index = -1;
+        for( const auto &id : candidates)
+        {
+            int dist = Matcher::HammingDistance(point->mDescriptor, descriptor.row(id));
+            if(dist < best_dist)
+            {
+                best_dist = dist;
+                best_index = id;
+            }
+        }
+        if(best_index != -1)
+            matches[best_index].push_back(make_pair(best_dist, i));
+    }
+
+    feature_matches_.resize(key_points.size(), -1);
+    for(int i = 0 ; i < key_points.size() ; ++i)
+    {
+        if(matches[i].empty()) continue;
+
+        int best_match = std::min_element(
+            matches[i].begin() , matches[i].end(),
+            [] (const pair<float, int> &m1 , pair<float, int> &m2)
+            {
+                return m1.first < m2.first;
+            })->second;
+        feature_matches_[i] = best_match;
+    }
+}
+
+void StereoOdometry::PoseOptimization()
+{
+    // 初始化g2o
+    typedef g2o::BlockSolver<g2o::BlockSolverTraits<6,1>> DirectBlock;  // 求解的向量是6＊1的
+    DirectBlock::LinearSolverType* linearSolver = new g2o::LinearSolverDense< DirectBlock::PoseMatrixType > ();
+    DirectBlock* solver_ptr = new DirectBlock ( linearSolver );
+
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr ); // L-M
+    g2o::SparseOptimizer optimizer;
+    optimizer.setAlgorithm ( solver );
+    optimizer.setVerbose( false );
+
+    g2o::SE3Quat se3pose( curr_->T_c_w_.rotation_matrix(), curr_->T_c_w_.translation() )
+    g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap();
+    pose->setEstimate ( se3pose );
+    pose->setId ( 0 );
+    optimizer.addVertex ( pose );
+
+    const auto &point3d = pre_->mMapPoints;
+    int id = 0;
+    for(int j = 0 ; j < feature_matches_.size() ; ++j)
+    {
+        int index = feature_matches_[j];
+        if( index < 0) continue;
+
+        const auto &pt =  curr_->mKeyPoints[j].pt;
+        EdgeProjectXYZ2UVPoseOnly *edge = new EdgeProjectXYZ2UVPoseOnly(point3d[index]->mPos3d, mCamera);
+        edge->setVertex(0, pose);
+        edge->setMeasurement( Eigen::Vector2d(pt.x, pt.y) );
+        edge->setInformation( Eigen::Matrix<double,1,1>::Identity());
+        edge->setId(id++);
+        optimizer.addEdge ( edge );
+    }
+
+    optimizer.initializeOptimization();
+//        log("match", "begin opt");
+    optimizer.optimize ( 30 );
+
+    se3pose = pose->estimate();
+
+
 }
 
 

@@ -285,7 +285,7 @@ void Matcher::DirectMethodMatching(Frame::Ptr cur_, Frame::Ptr pre_, FeatureExtr
 
     Tcw = pre_->T_c_w_;
     g2o::SE3Quat se3( Tcw.rotation_matrix(), Tcw.translation() );
-    for(size_t i = ini ; i != 0 ; i -= ii )
+    for(size_t i = ini ;  ; i -= ii )
     {
         float scale = extract->GetScale(i);
         // 直接法跟踪特征点
@@ -310,7 +310,7 @@ void Matcher::DirectMethodMatching(Frame::Ptr cur_, Frame::Ptr pre_, FeatureExtr
         optimizer.addVertex ( pose );
 
 
-        int id = 1;
+        int id = 0;
         for(int j = 0 ; j < pos_world.size() ; ++j)
         {
             const auto &pos = pos_world[j];
@@ -331,6 +331,9 @@ void Matcher::DirectMethodMatching(Frame::Ptr cur_, Frame::Ptr pre_, FeatureExtr
         optimizer.optimize ( 30 );
 
         se3 = pose->estimate();
+//        debug_direct_method(pre_, cur_, i, se3, scale);
+
+        if(!i) break;
     }
 
     Tcw = Sophus::SE3(se3.rotation(), se3.translation());
