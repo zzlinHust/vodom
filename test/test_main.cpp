@@ -43,9 +43,7 @@ int main(int argc, char **argv)
 
         /// track
 
-        myslam::log("main", std::string("image ") + to_string(ni) + string("  in "));
         odom->GrabImage(imLeft, imRight);
-        myslam::log("main", "finish\n");
 
 //        sleep(10);
 

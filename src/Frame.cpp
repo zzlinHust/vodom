@@ -33,7 +33,6 @@ void Frame::DistributeKeyPoints2Grid()
 {
      static float grid_height_inv = GRID_ROWS / float(mImagePyr[0].rows);
      static float grid_width_inv  = GRID_COLS / float(mImagePyr[0].cols);
-    cout << 1.0 / grid_height_inv << "  " << 1.0 / grid_width_inv << endl;
 
      for(size_t i = 0 ; i < mKeyPoints.size() ; ++i)
      {
@@ -57,11 +56,11 @@ void Frame::GetKeyPointsInArea(cv::Point2f pos, int radium, std::vector<size_t> 
     if(minY >= GRID_ROWS)
         return;
 
-    int maxX = min(int(ceil(pos.x + radium) * grid_width_inv), 0);
+    int maxX = min(int(ceil(pos.x + radium) * grid_width_inv), GRID_COLS-1);
     if(maxX < 0)
         return;
 
-    int maxY = min(int(ceil(pos.y + radium) * grid_height_inv), 0);
+    int maxY = min(int(ceil(pos.y + radium) * grid_height_inv), GRID_ROWS-1);
     if(maxY < 0)
         return;
 
@@ -69,7 +68,9 @@ void Frame::GetKeyPointsInArea(cv::Point2f pos, int radium, std::vector<size_t> 
     for(int i = minY ; i <= maxY ; ++i)
         for(int j = minX ; j <= maxX ; ++j)
         {
-            candidates.insert(candidates.end(), mGrid[i][j].begin(), mGrid[i][j].end());
+            auto &grid = mGrid[i][j];
+            if(grid.size())
+                candidates.insert(candidates.end(), grid.begin(), grid.end());
         }
 }
 

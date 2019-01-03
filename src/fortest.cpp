@@ -77,8 +77,34 @@ void debug_direct_method(Frame::Ptr &pre, Frame::Ptr &cur, int level, g2o::SE3Qu
             }
         }
     }
+}
 
+void show_matches(Frame::Ptr &pre, Frame::Ptr &cur, std::vector<int> &matches)
+{
+    cv::Mat &img_cur = cur->mImagePyr[0];
+    cv::Mat &img_pre = pre->mImagePyr[0];
+    cv::Mat show;
 
+    auto &kp_pre = pre->mKeyPoints;
+    auto &kp_cur = cur->mKeyPoints;
+
+    cv::Point2f  ppp(0,img_pre.rows);
+
+    for (int i = 0; i < kp_cur.size(); ++i)
+    {
+        if(matches[i] != -1)
+        {
+            auto &pt_cur = kp_cur[i].pt;
+            auto pt_pre = kp_pre[matches[i]].pt + ppp;
+
+            cv::vconcat(img_cur, img_pre, show);
+            cv::circle(show, pt_cur, 5, cv::Scalar(200));
+            cv::circle(show, pt_pre, 5, cv::Scalar(200));
+            cv::line(show, pt_cur, pt_pre, cv::Scalar(200));
+            cv::imshow("keypoints matches",show);
+            cv::waitKey();
+        }
+    }
 }
 
 }

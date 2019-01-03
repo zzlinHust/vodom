@@ -4,7 +4,7 @@
 
 
 #include "StereoOdometry.h"
-
+#include "fortest.h"
 //#include "g2o_types.h"
 using namespace std;
 
@@ -58,7 +58,7 @@ StereoOdometry::StereoOdometry() : state_(INITIALIZING) , ref_(nullptr) , curr_(
     mViewer = new Viewer;
     mViewer->SetMap(map_);
 
-//    viewer = new thread(&Viewer::Run, mViewer);
+    viewer = new thread(&Viewer::Run, mViewer);
 }
 
 
@@ -68,7 +68,9 @@ StereoOdometry::~StereoOdometry() {
 
 void StereoOdometry::GrabImage(cv::Mat img_l, cv::Mat img_r)
 {
+    log("GrabImage:", "new image in");
     myslam::Input::Ptr input = std::make_shared<myslam::Input>(img_l, img_r, mK, mDistCoef, mbf, mExtraction);
+    log("GrabImage:", "finish stereo image extraction, addFrame");
     addFrame(Frame::CreateFrame(input, mCamera));
 }
 
@@ -92,11 +94,17 @@ bool StereoOdometry::addFrame(Frame::Ptr frame)
             // TODO: matching and estimate
             /** 1. 直接法跟踪特征点并获取初始位姿 **/
             mMatcher->DirectMethodMatching(curr_, pre_, mExtraction);
+            log("addFrame:", "finish direct method tracking, begin feature matching");
 
             /** 2. 特征点匹配 **/
             FeatureMatching();
+            log("addFrame:", "finish Feature Matching, begin Pose Optimization");
+
 
             /** 3. 重投影位姿优化 **/
+            PoseOptimization();
+            log("addFrame:", "finish Pose Optimization, add key frame");
+
 
             addKeyFrame();
             mViewer->SetPose(curr_->GetPose());
@@ -140,6 +148,7 @@ bool StereoOdometry::addFrame(Frame::Ptr frame)
 
 void StereoOdometry::addKeyFrame()
 {
+    int n = 0;
     for(int i = 0 ; i < curr_->mKeyPoints.size() ; ++i)
     {
         float z = curr_->mDepth[i];
@@ -155,10 +164,12 @@ void StereoOdometry::addKeyFrame()
 
             map_->insertMapPoint(point);
             curr_->mMapPoints[i] = point;
+            ++n;
         }
     }
     map_->insertKeyFrame(curr_);
     ref_ = curr_;
+    cout << "add " << n << "  map points" << endl;
 }
 
 void StereoOdometry::FeatureMatching()
@@ -175,10 +186,12 @@ void StereoOdometry::FeatureMatching()
     for(int i = 0 ; i < map_points.size() ; ++i)
     {
         auto &point = map_points[i];
+        if(!point) continue;
         Eigen::Vector2d uv = pre_->mCamera->world2Pixel(point->mPos3d, curr_->T_c_w_);
 
         vector<size_t> candidates;
-        curr_->GetKeyPointsInArea(cv::Point2f(uv[0], uv[1]), 15, candidates);
+        curr_->GetKeyPointsInArea(cv::Point2f(uv[0], uv[1]), 8, candidates);
+
 
         int best_dist = 100;
         int best_index = -1;
@@ -208,6 +221,7 @@ void StereoOdometry::FeatureMatching()
             })->second;
         feature_matches_[i] = best_match;
     }
+//    show_matches(pre_, curr_, feature_matches_);
 }
 
 void StereoOdometry::PoseOptimization()
@@ -222,7 +236,7 @@ void StereoOdometry::PoseOptimization()
     optimizer.setAlgorithm ( solver );
     optimizer.setVerbose( false );
 
-    g2o::SE3Quat se3pose( curr_->T_c_w_.rotation_matrix(), curr_->T_c_w_.translation() )
+    g2o::SE3Quat se3pose( curr_->T_c_w_.rotation_matrix(), curr_->T_c_w_.translation() );
     g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap();
     pose->setEstimate ( se3pose );
     pose->setId ( 0 );
@@ -239,7 +253,7 @@ void StereoOdometry::PoseOptimization()
         EdgeProjectXYZ2UVPoseOnly *edge = new EdgeProjectXYZ2UVPoseOnly(point3d[index]->mPos3d, mCamera);
         edge->setVertex(0, pose);
         edge->setMeasurement( Eigen::Vector2d(pt.x, pt.y) );
-        edge->setInformation( Eigen::Matrix<double,1,1>::Identity());
+        edge->setInformation( Eigen::Matrix<double,2,2>::Identity());
         edge->setId(id++);
         optimizer.addEdge ( edge );
     }
@@ -250,7 +264,9 @@ void StereoOdometry::PoseOptimization()
 
     se3pose = pose->estimate();
 
+    curr_->T_c_w_ = Sophus::SE3(se3pose.rotation(), se3pose.translation());
 
+    cout << curr_->T_c_w_.translation() << endl;
 }
 
 

@@ -331,13 +331,12 @@ void Matcher::DirectMethodMatching(Frame::Ptr cur_, Frame::Ptr pre_, FeatureExtr
         optimizer.optimize ( 30 );
 
         se3 = pose->estimate();
-//        debug_direct_method(pre_, cur_, i, se3, scale);
 
         if(!i) break;
     }
 
     Tcw = Sophus::SE3(se3.rotation(), se3.translation());
-    cout << Tcw.translation().transpose() << endl;
+//    cout << Tcw.translation().transpose() << endl;
 //    Tcw = se3.to_homogeneous_matrix();
 
 //    Tcw = se3;

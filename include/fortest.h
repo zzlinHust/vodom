@@ -21,6 +21,8 @@ void log(const std::string &where, const std::string &msg);
 
 void debug_direct_method(Frame::Ptr &pre, Frame::Ptr &cur, int level, g2o::SE3Quat se3, float scale);
 
+void show_matches(Frame::Ptr &pre, Frame::Ptr &cur, std::vector<int> &matches);
+
 }
 
 #endif //MYSLAM_FORTEST_H
