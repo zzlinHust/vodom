@@ -226,14 +226,14 @@ void StereoOdometry::FeatureMatching()
 
 void StereoOdometry::PoseOptimization()
 {
-    // 初始化g2o
-    typedef g2o::BlockSolver<g2o::BlockSolverTraits<6,1>> DirectBlock;  // 求解的向量是6＊1的
-    DirectBlock::LinearSolverType* linearSolver = new g2o::LinearSolverDense< DirectBlock::PoseMatrixType > ();
-    DirectBlock* solver_ptr = new DirectBlock ( linearSolver );
 
-    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr ); // L-M
+    // using bundle adjustment to optimize the pose
+    typedef g2o::BlockSolver<g2o::BlockSolverTraits<6,2>> Block;
+    Block::LinearSolverType *linearSolver = new g2o::LinearSolverDense<Block::PoseMatrixType>();
+    Block *solver_ptr = new Block(linearSolver);
+    g2o::OptimizationAlgorithmLevenberg *solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
     g2o::SparseOptimizer optimizer;
-    optimizer.setAlgorithm ( solver );
+    optimizer.setAlgorithm( solver );
     optimizer.setVerbose( false );
 
     g2o::SE3Quat se3pose( curr_->T_c_w_.rotation_matrix(), curr_->T_c_w_.translation() );
@@ -242,21 +242,25 @@ void StereoOdometry::PoseOptimization()
     pose->setId ( 0 );
     optimizer.addVertex ( pose );
 
+    log("PoseOpt:", "add edge");
     const auto &point3d = pre_->mMapPoints;
-    int id = 0;
+    int id = 1;
     for(int j = 0 ; j < feature_matches_.size() ; ++j)
     {
         int index = feature_matches_[j];
         if( index < 0) continue;
 
         const auto &pt =  curr_->mKeyPoints[j].pt;
-        EdgeProjectXYZ2UVPoseOnly *edge = new EdgeProjectXYZ2UVPoseOnly(point3d[index]->mPos3d, mCamera);
+        const auto &point = point3d[index];
+        if(!point) continue;
+        EdgeProjectXYZ2UVPoseOnly *edge = new EdgeProjectXYZ2UVPoseOnly(point->mPos3d, mCamera);
         edge->setVertex(0, pose);
         edge->setMeasurement( Eigen::Vector2d(pt.x, pt.y) );
         edge->setInformation( Eigen::Matrix<double,2,2>::Identity());
         edge->setId(id++);
         optimizer.addEdge ( edge );
     }
+    log("PoseOpt:", "add edge end");
 
     optimizer.initializeOptimization();
 //        log("match", "begin opt");
@@ -266,7 +270,7 @@ void StereoOdometry::PoseOptimization()
 
     curr_->T_c_w_ = Sophus::SE3(se3pose.rotation(), se3pose.translation());
 
-    cout << curr_->T_c_w_.translation() << endl;
+    cout << curr_->T_c_w_.translation().transpose() << endl;
 }
 
 
