@@ -54,7 +54,7 @@ void EdgeDirect::computeError()
     float x = float(pos_local[0]) * fx_ * inv_z + cx_;
     float y = float(pos_local[1]) * fy_ * inv_z + cy_;
 
-    if(x < 0)
+    if(x < 3 || y < 3 || x >= image_->cols-3 || y >= image_->rows-3)
     {
         _error(0,0) = 0;
         this->setLevel(1);

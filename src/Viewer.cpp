@@ -112,7 +112,7 @@ void Viewer::Run()
     pangolin::OpenGlMatrix Twc;
     Twc.SetIdentity();
 
-//    cv::namedWindow("Stereo Odometry by lzz");
+    cv::namedWindow("Stereo Odometry by lzz");
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -156,8 +156,12 @@ void Viewer::Run()
 
         pangolin::FinishFrame();
 
-//        cv::Mat im = mpFrameDrawer->DrawFrame();
-//        cv::imshow("CTI-ORB: Current Frame",im);
+        cv::Mat im ;
+        {
+            unique_lock<mutex> lock(mMutexFrame);
+            im = mFrame->mImagePyr[0].clone();
+        }
+        cv::imshow("Stereo Odometry by lzz",im);
         cv::waitKey(mT);
 
 
@@ -422,6 +426,12 @@ void Viewer::SetPose(cv::Mat pose)
 {
     unique_lock<mutex> lock(mMutexCamera);
     mCameraPose = pose.clone();
+}
+
+void Viewer::SetFrame(const Frame::Ptr &frame)
+{
+    unique_lock<mutex> lock(mMutexFrame);
+    mFrame = frame;
 }
 
 }

@@ -38,8 +38,6 @@ void Frame::DistributeKeyPoints2Grid()
      {
           auto &kp = mKeyPoints[i];
           mGrid[int(kp.pt.y * grid_height_inv)][int(kp.pt.x * grid_width_inv)].push_back(i);
-         if(int(kp.pt.y * grid_height_inv) >= GRID_ROWS || int(kp.pt.x * grid_width_inv) >= GRID_COLS)
-             cout << "pointer out 1" << endl;
      }
 }
 

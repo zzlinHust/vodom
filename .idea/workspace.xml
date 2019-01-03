@@ -17,8 +17,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bad57bc4-6e24-4330-aeef-0e3df3ef48f7" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/Viewer.h" afterPath="$PROJECT_DIR$/include/Viewer.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Frame.cpp" afterPath="$PROJECT_DIR$/src/Frame.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Matcher.cpp" afterPath="$PROJECT_DIR$/src/Matcher.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/StereoOdometry.cpp" afterPath="$PROJECT_DIR$/src/StereoOdometry.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Viewer.cpp" afterPath="$PROJECT_DIR$/src/Viewer.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/g2o_types.cpp" afterPath="$PROJECT_DIR$/src/g2o_types.cpp" />
     </list>
     <ignored path="visualOdometry.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -41,7 +45,7 @@
       <file leaf-file-name="StereoOdometry.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/StereoOdometry.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="273">
+            <state relative-caret-position="588">
               <caret line="85" column="28" selection-start-line="85" selection-start-column="28" selection-end-line="85" selection-end-column="28" />
               <folding>
                 <element signature="e#121#148#0" expanded="true" />
@@ -50,11 +54,36 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="StereoOdometry.cpp" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Viewer.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/Viewer.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="269">
+              <caret line="67" column="46" selection-start-line="67" selection-start-column="46" selection-end-line="67" selection-end-column="46" />
+              <folding>
+                <element signature="e#952#979#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Viewer.cpp" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/Viewer.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="458">
+              <caret line="175" column="0" selection-start-line="175" selection-start-column="0" selection-end-line="175" selection-end-column="0" />
+              <folding>
+                <element signature="e#867#891#0" expanded="true" />
+                <element signature="e#8095#8116#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="StereoOdometry.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/StereoOdometry.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="504">
-              <caret line="253" column="35" selection-start-line="253" selection-start-column="28" selection-end-line="253" selection-end-column="35" />
+            <state relative-caret-position="467">
+              <caret line="197" column="28" selection-start-line="197" selection-start-column="0" selection-end-line="198" selection-end-column="0" />
               <folding>
                 <element signature="e#38#65#0" expanded="true" />
               </folding>
@@ -62,41 +91,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CMakeLists.txt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+      <file leaf-file-name="Frame.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/Frame.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="84">
-              <caret line="13" column="7" selection-start-line="13" selection-start-column="7" selection-end-line="13" selection-end-column="7" />
+            <state relative-caret-position="332">
+              <caret line="57" column="53" selection-start-line="57" selection-start-column="43" selection-end-line="57" selection-end-column="53" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Map.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Map.cpp">
+      <file leaf-file-name="g2o_types.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/g2o_types.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-119">
-              <caret line="14" column="14" selection-start-line="14" selection-start-column="14" selection-end-line="14" selection-end-column="14" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Input.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/Input.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="736">
-              <caret line="40" column="42" selection-start-line="40" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Input.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Input.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="196">
-              <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
+            <state relative-caret-position="1676">
+              <caret line="85" column="25" selection-start-line="85" selection-start-column="25" selection-end-line="85" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -105,7 +114,7 @@
       <file leaf-file-name="test_main.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/test_main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="294">
+            <state relative-caret-position="357">
               <caret line="45" column="18" selection-start-line="45" selection-start-column="18" selection-end-line="45" selection-end-column="18" />
               <folding>
                 <element signature="e#1311#2331#0" expanded="false" />
@@ -117,7 +126,7 @@
       <file leaf-file-name="g2o_types.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/g2o_types.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="194">
+            <state relative-caret-position="-58">
               <caret line="27" column="6" selection-start-line="27" selection-start-column="6" selection-end-line="27" selection-end-column="6" />
               <folding>
                 <element signature="e#92#119#0" expanded="true" />
@@ -126,24 +135,24 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Matcher.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Matcher.cpp">
+      <file leaf-file-name="Frame.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Frame.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="400">
-              <caret line="341" column="16" selection-start-line="341" selection-start-column="16" selection-end-line="341" selection-end-column="16" />
-              <folding>
-                <element signature="e#37#57#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="-613">
+              <caret line="36" column="0" selection-start-line="36" selection-start-column="0" selection-end-line="40" selection-end-column="6" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Frame.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Frame.cpp">
+      <file leaf-file-name="Matcher.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Matcher.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="427">
-              <caret line="62" column="77" selection-start-line="62" selection-start-column="77" selection-end-line="62" selection-end-column="77" />
-              <folding />
+            <state relative-caret-position="395">
+              <caret line="338" column="16" selection-start-line="338" selection-start-column="16" selection-end-line="338" selection-end-column="16" />
+              <folding>
+                <element signature="e#37#57#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -194,18 +203,18 @@
         <option value="$PROJECT_DIR$/src/frame.cpp" />
         <option value="$PROJECT_DIR$/include/MapPoint.h" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/include/Viewer.h" />
-        <option value="$PROJECT_DIR$/src/Viewer.cpp" />
         <option value="$PROJECT_DIR$/src/Input.cpp" />
         <option value="$PROJECT_DIR$/include/Frame.h" />
         <option value="$PROJECT_DIR$/include/StereoOdometry.h" />
-        <option value="$PROJECT_DIR$/src/g2o_types.cpp" />
         <option value="$PROJECT_DIR$/include/g2o_types.h" />
         <option value="$PROJECT_DIR$/include/fortest.h" />
         <option value="$PROJECT_DIR$/src/fortest.cpp" />
-        <option value="$PROJECT_DIR$/src/Frame.cpp" />
-        <option value="$PROJECT_DIR$/src/Matcher.cpp" />
         <option value="$PROJECT_DIR$/test/test_main.cpp" />
+        <option value="$PROJECT_DIR$/include/Viewer.h" />
+        <option value="$PROJECT_DIR$/src/Viewer.cpp" />
+        <option value="$PROJECT_DIR$/src/g2o_types.cpp" />
+        <option value="$PROJECT_DIR$/src/Matcher.cpp" />
+        <option value="$PROJECT_DIR$/src/Frame.cpp" />
         <option value="$PROJECT_DIR$/src/StereoOdometry.cpp" />
       </list>
     </option>
@@ -566,7 +575,7 @@
       <workItem from="1545962776662" duration="26885000" />
       <workItem from="1546047181681" duration="26911000" />
       <workItem from="1546392607951" duration="18938000" />
-      <workItem from="1546483337458" duration="5582000" />
+      <workItem from="1546483337458" duration="9142000" />
     </task>
     <task id="LOCAL-00001" summary="fix some bugs in feature matching">
       <created>1546486835929</created>
@@ -579,7 +588,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="322226000" />
+    <option name="totallyTimeSpent" value="325786000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -841,6 +850,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="409">
           <caret line="31" column="36" selection-start-line="31" selection-start-column="27" selection-end-line="31" selection-end-column="36" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -851,44 +861,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Viewer.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1491">
-          <caret line="71" column="0" selection-start-line="71" selection-start-column="0" selection-end-line="71" selection-end-column="0" />
-          <folding>
-            <element signature="e#867#891#0" expanded="true" />
-            <element signature="e#8012#8033#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/Viewer.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="798">
-          <caret line="38" column="0" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/include/eigen3/Eigen/src/Core/Matrix.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="218">
           <caret line="450" column="54" selection-start-line="450" selection-start-column="54" selection-end-line="450" selection-end-column="54" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/Frame.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="777">
-          <caret line="37" column="28" selection-start-line="37" selection-start-column="28" selection-end-line="37" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/g2o_types.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="17" column="30" selection-start-line="17" selection-start-column="5" selection-end-line="17" selection-end-column="30" />
           <folding />
         </state>
       </provider>
@@ -927,24 +903,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Frame.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="427">
-          <caret line="62" column="77" selection-start-line="62" selection-start-column="77" selection-end-line="62" selection-end-column="77" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/Matcher.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="400">
-          <caret line="341" column="16" selection-start-line="341" selection-start-column="16" selection-end-line="341" selection-end-column="16" />
-          <folding>
-            <element signature="e#37#57#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/include/Input.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="736">
@@ -958,16 +916,6 @@
         <state relative-caret-position="196">
           <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_main.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="294">
-          <caret line="45" column="18" selection-start-line="45" selection-start-column="18" selection-end-line="45" selection-end-column="18" />
-          <folding>
-            <element signature="e#1311#2331#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -987,9 +935,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/include/Frame.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="332">
+          <caret line="57" column="53" selection-start-line="57" selection-start-column="43" selection-end-line="57" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_main.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="357">
+          <caret line="45" column="18" selection-start-line="45" selection-start-column="18" selection-end-line="45" selection-end-column="18" />
+          <folding>
+            <element signature="e#1311#2331#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/include/StereoOdometry.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="273">
+        <state relative-caret-position="588">
           <caret line="85" column="28" selection-start-line="85" selection-start-column="28" selection-end-line="85" selection-end-column="28" />
           <folding>
             <element signature="e#121#148#0" expanded="true" />
@@ -997,9 +963,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/include/Viewer.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="269">
+          <caret line="67" column="46" selection-start-line="67" selection-start-column="46" selection-end-line="67" selection-end-column="46" />
+          <folding>
+            <element signature="e#952#979#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/include/g2o_types.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="194">
+        <state relative-caret-position="-58">
           <caret line="27" column="6" selection-start-line="27" selection-start-column="6" selection-end-line="27" selection-end-column="6" />
           <folding>
             <element signature="e#92#119#0" expanded="true" />
@@ -1007,12 +983,49 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/g2o_types.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1676">
+          <caret line="85" column="25" selection-start-line="85" selection-start-column="25" selection-end-line="85" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Matcher.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="395">
+          <caret line="338" column="16" selection-start-line="338" selection-start-column="16" selection-end-line="338" selection-end-column="16" />
+          <folding>
+            <element signature="e#37#57#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Frame.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-613">
+          <caret line="36" column="0" selection-start-line="36" selection-start-column="0" selection-end-line="40" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/StereoOdometry.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="504">
-          <caret line="253" column="35" selection-start-line="253" selection-start-column="28" selection-end-line="253" selection-end-column="35" />
+        <state relative-caret-position="467">
+          <caret line="197" column="28" selection-start-line="197" selection-start-column="0" selection-end-line="198" selection-end-column="0" />
           <folding>
             <element signature="e#38#65#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Viewer.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="458">
+          <caret line="175" column="0" selection-start-line="175" selection-start-column="0" selection-end-line="175" selection-end-column="0" />
+          <folding>
+            <element signature="e#867#891#0" expanded="true" />
+            <element signature="e#8095#8116#0" expanded="true" />
           </folding>
         </state>
       </provider>

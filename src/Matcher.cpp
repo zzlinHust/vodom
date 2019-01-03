@@ -309,29 +309,26 @@ void Matcher::DirectMethodMatching(Frame::Ptr cur_, Frame::Ptr pre_, FeatureExtr
         pose->setId ( 0 );
         optimizer.addVertex ( pose );
 
-
         int id = 0;
         for(int j = 0 ; j < pos_world.size() ; ++j)
         {
             const auto &pos = pos_world[j];
-            auto pt = pre_kpt[j].pt;
             if(pos)
             {
-                EdgeDirect *edge = new EdgeDirect(pos->mPos3d,fx,fy,cx,cy,&cur_pyr[i]);
+                auto pt = scale * pre_kpt[j].pt;
+
+                EdgeDirect *edge = new EdgeDirect(pos->mPos3d,pfx,pfy,pcx,pcy,&cur_pyr[i]);
                 edge->setVertex(0, pose);
-                edge->setMeasurement(double(pre_pyr[i].at<uchar>(scale * pt)));
+                edge->setMeasurement(double(pre_pyr[i].at<uchar>(pt)));
                 edge->setInformation( Eigen::Matrix<double,1,1>::Identity());
                 edge->setId(id++);
                 optimizer.addEdge ( edge );
             }
         }
-
         optimizer.initializeOptimization();
-//        log("match", "begin opt");
         optimizer.optimize ( 30 );
 
         se3 = pose->estimate();
-
         if(!i) break;
     }
 

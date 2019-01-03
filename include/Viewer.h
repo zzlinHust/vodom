@@ -65,6 +65,8 @@ namespace myslam
 
         void SetPose(cv::Mat);
 
+        void SetFrame(const Frame::Ptr &frame);
+
     private:
 
         bool Stop();
@@ -105,6 +107,9 @@ namespace myslam
 
         cv::Mat mCameraPose;
         std::mutex mMutexCamera;
+
+        Frame::Ptr mFrame;
+        std::mutex mMutexFrame;
 
     };
 
